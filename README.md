@@ -17,3 +17,18 @@ board_build.mcu = esp32c6
 ; MCU frequency
 board_build.f_cpu = 160000000L
 ```
+
+## platformio setup
+
+udev rules
+```
+curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/system/99-platformio-udev.rules | sudo tee /etc/udev/rules.d/99-platformio-udev.rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+# for arch users
+sudo usermod -a -G uucp $USER
+sudo usermod -a -G lock $USER
+```
+
+
