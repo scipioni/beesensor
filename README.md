@@ -18,7 +18,43 @@ board_build.mcu = esp32c6
 board_build.f_cpu = 160000000L
 ```
 
+
+
+## install platformio on archlinux
+To install on arch linux:
+```
+yay codium
+```
+
+- Select and install "vscodium-bin-marketplace"
+
+- If inside codium you still don't see platformio on the extensions marketplace then follow this:
+
+
+- Create this file:
+~/.config/VSCodium/product.json
+
+- Put this inside the file:
+```
+{
+  "extensionsGallery": {
+    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+    "itemUrl": "https://marketplace.visualstudio.com/items",
+    "controlUrl": "",
+    "recommendationsUrl": ""
+  }
+}
+```
+
+- Reload codium
+- Install platformio from the list of extensions
+
+
 ## platformio setup
+
+
+
 
 udev rules
 ```
