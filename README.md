@@ -20,6 +20,25 @@ board_build.f_cpu = 160000000L
 ```
 
 
+## zigbee2mqtt
+
+install docker
+```
+yay -S docker docker-buildx docker-compose
+sudo usermod -a -G docker $USER
+sudo systemctl enable docker
+reboot
+
+```
+
+start 
+```
+docker compose up
+```
+
+frontend zigbee2mqq at http://localhost:8099
+
+
 
 ## install platformio on archlinux
 To install on arch linux:

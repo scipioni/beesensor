@@ -1,0 +1,29 @@
+services:
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    environment:
+      - TZ=Europe/Rome
+    volumes:
+      - ./zigbee2mqtt.yaml:/app/data/configuration.yaml
+    #   - /run/udev:/run/udev:ro
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
+    # privileged: true
+    # restart: unless-stopped
+    ports:
+      - 8099:8080
+    # group_add:
+    #   - dialout
+    # user: 1000:1000
+
+
+
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    restart: unless-stopped
+    volumes:
+      - "./runtime/mosquitto-data:/mosquitto"
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    command: "mosquitto -c /mosquitto-no-auth.conf"
