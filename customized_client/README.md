@@ -48,7 +48,11 @@ using `idf.py -p /dev/ttyACM0 erase-flash`
 
 ## Build and Flash
 
-Build the project, flash it to the board, and start the monitor tool to view the serial output by running `idf.py -p /dev/ttyACM0 flash monitor`.
+Build the project, flash it to the board, and start the monitor tool to view the serial output by running 
+
+```bash
+idf.py -p /dev/ttyACM0 flash monitor
+```
 
 (To exit the serial monitor, type ``Ctrl-]``.)
 
