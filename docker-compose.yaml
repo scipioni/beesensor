@@ -4,7 +4,8 @@ services:
     environment:
       - TZ=Europe/Rome
     volumes:
-      - ./zigbee2mqtt.yaml:/app/data/configuration.yaml
+      - ./zigbee2mqtt/zigbee2mqtt.yaml:/app/data/configuration.yaml
+      - ./zigbee2mqtt/external:/app/data/external
     #   - /run/udev:/run/udev:ro
     devices:
       - /dev/ttyACM0:/dev/ttyACM0

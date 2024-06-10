@@ -96,9 +96,12 @@ I (24802) ESP_HA_ON_OFF_SWITCH: Received report information: attribute(0x0), typ
 
 ```
 
-## Light Control Functions
 
- * By toggling the switch button (BOOT) on the ESP32-H2 board loaded with the `customized_client` example, the LED on this board loaded with `customized_server` example will be on and off.
+## zigbee2mqtt
+
+new devices - https://www.zigbee2mqtt.io/advanced/support-new-devices/01_support_new_devices.html
+
+generate the external definition by going to the device -> "Dev console" tab and press "Generate external definition".
 
 
 ## Troubleshooting
