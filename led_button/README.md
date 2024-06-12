@@ -4,11 +4,11 @@
 # Light Button Example
 Whith the press of the button on the board, the led 15 lights up and, with another press, it goes off.
 
+
 ## Hardware Required
 
-* One development board with ESP32-H2 SoC acting as Zigbee end device (loaded with customized_client example)
+* One development board with ESP32-C6 SoC
 * A USB cable for power supply and programming
-* Choose another ESP32-H2 as Zigbee coordinator (see [customized_server](../customized_server/))
 
 
 ## ESP-IDF
