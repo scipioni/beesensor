@@ -108,3 +108,5 @@ generate the external definition by going to the device -> "Dev console" tab and
 ## Troubleshooting
 
 For any technical queries, please open an [issue](https://github.com/espressif/esp-zigbee-sdk/issues) on GitHub. We will get back to you soon.
+
+link utile: https://chatgpt.com/share/b611b1b0-cb59-4c38-99e2-1f553ff43e6c
