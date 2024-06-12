@@ -35,5 +35,5 @@ void deepslyp()
 void app_main()
 {
     led();
-    deepslyp();
+    //deepslyp();
 }
