@@ -15,25 +15,25 @@ int last_button_state = 1; // Stato precedente del pulsante
 
 static void configure_button() {
     gpio_config_t io_conf;
-    io_conf.intr_type = GPIO_INTR_DISABLE;  // Disabilita l'interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;  // Disable interrupt
     io_conf.pin_bit_mask = (1ULL << BUTTON);
     io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pull_up_en = 1;  // Abilita la pull-up interna
+    io_conf.pull_up_en = 1;  // enable internal pull-up 
     gpio_config(&io_conf);
 }
 
 void app_main() {
-    gpio_set_direction(LED, GPIO_MODE_OUTPUT);  // Configura il LED come output
-    configure_button();  // Configura il pulsante
-    gpio_set_level(LED, led_state);  // Imposta lo stato iniziale del LED
+    gpio_set_direction(LED, GPIO_MODE_OUTPUT);  // configure  LED pin as output
+    configure_button();  // Configure button
+    gpio_set_level(LED, led_state);  // set initial led state
 
     while (1) {
         int button_state = gpio_get_level(BUTTON);
-        if (button_state == 0 && last_button_state == 1) {  // Rileva la caduta del segnale
-            led_state = !led_state;  // Inverti lo stato del LED
+        if (button_state == 0 && last_button_state == 1) {  // get the falling state of the button
+            led_state = !led_state;  // change the led status
             gpio_set_level(LED, led_state);
         }
         last_button_state = button_state;
-        vTaskDelay(10 / portTICK_PERIOD_MS);  // Aggiungi un piccolo ritardo per il debounce
+        vTaskDelay(10 / portTICK_PERIOD_MS);  // small debounce delay
     }
 }
