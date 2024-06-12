@@ -1,8 +1,8 @@
 | Supported Targets | ESP32-C6 |
 | ----------------- | -------- |
 
-# Light Switch Example
-Whith the press of the button on the board, the led 15 lights up 
+# Light Button Example
+Whith the press of the button on the board, the led 15 lights up and, with another press, it goes off.
 
 ## Hardware Required
 
