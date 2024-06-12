@@ -10,8 +10,8 @@
 #define LED 15
 #define BUTTON GPIO_NUM_9
 
-int led_state = 0; // Stato del LED (0 = spento, 1 = acceso)
-int last_button_state = 1; // Stato precedente del pulsante
+int led_state = 0; //Led State
+int last_button_state = 1; // previous button state
 
 static void configure_button() {
     gpio_config_t io_conf;
