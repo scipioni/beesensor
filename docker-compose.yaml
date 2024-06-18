@@ -38,4 +38,3 @@ services:
     network_mode: host
     ports:
       - 8123:8123
-    # info pc federico: user: federico-pcto passwd: federicoPCTO!
