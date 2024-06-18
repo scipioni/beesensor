@@ -25,6 +25,8 @@
 #endif
 
 static const char *TAG = "ESP_ZB_ON_OFF_LIGHT";
+bool light_state = 0;
+
 /********************* Define functions **************************/
 static void bdb_start_top_level_commissioning_cb(uint8_t mode_mask)
 {
@@ -79,7 +81,6 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t *message)
 {
     esp_err_t ret = ESP_OK;
-    bool light_state = 0;
 
     ESP_RETURN_ON_FALSE(message, ESP_FAIL, TAG, "Empty message");
     ESP_RETURN_ON_FALSE(message->info.status == ESP_ZB_ZCL_STATUS_SUCCESS, ESP_ERR_INVALID_ARG, TAG, "Received message: error status(%d)",
@@ -90,7 +91,8 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
         if (message->info.cluster == ESP_ZB_ZCL_CLUSTER_ID_ON_OFF) {
             if (message->attribute.id == ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID && message->attribute.data.type == ESP_ZB_ZCL_ATTR_TYPE_BOOL) {
                 light_state = message->attribute.data.value ? *(bool *)message->attribute.data.value : light_state;
-                ESP_LOGI(TAG, "Light sets to %s", light_state ? "On" : "Off");
+                ESP_LOGI(TAG, "Light sets to %s", light_state ? "Off" : "On");
+                light_state = !light_state;
                 light_driver_set_power(light_state);
             }
         }

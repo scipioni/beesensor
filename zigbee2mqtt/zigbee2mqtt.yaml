@@ -1,4 +1,4 @@
-homeassistant: false
+homeassistant: true
 frontend: true
 mqtt:
   base_topic: zigbee2mqtt
@@ -41,5 +41,13 @@ device_options:
 devices:
   '0x543204fffe0b483c':
     friendly_name: '0x543204fffe0b483c'
+  '0x543204fffe08bd1c':
+    friendly_name: '0x543204fffe08bd1c'
+  '0x543204fffe0814ec':
+    friendly_name: '0x543204fffe0814ec'
+  '0xa4c138bc3e02734d':
+    friendly_name: '0xa4c138bc3e02734d'
 external_converters:
   - external/esp32c6-light.js
+permit_join: true
+log_level: debug

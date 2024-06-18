@@ -17,14 +17,25 @@ services:
     #   - dialout
     # user: 1000:1000
 
-
-
   mqtt:
     image: eclipse-mosquitto:2.0
-    restart: unless-stopped
+    # restart: unless-stopped
     volumes:
       - "./runtime/mosquitto-data:/mosquitto"
     ports:
       - "1883:1883"
       - "9001:9001"
     command: "mosquitto -c /mosquitto-no-auth.conf"
+
+  homeassistant:
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /PATH_TO_YOUR_CONFIG:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /run/dbus:/run/dbus:ro
+    # restart: unless-stopped
+    # privileged: true
+    network_mode: host
+    ports:
+      - 8123:8123
+    # info pc federico: user: federico-pcto passwd: federicoPCTO!

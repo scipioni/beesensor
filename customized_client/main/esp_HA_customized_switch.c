@@ -51,11 +51,12 @@ typedef struct zdo_info_ctx_s {
 /* remote device struct for recording and managing node info */
 light_bulb_device_params_t on_off_light;
 
+
 static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
 {
     switch (button_func_pair->func) {
     case SWITCH_ONOFF_TOGGLE_CONTROL: {
-        /* send on-off toggle command to remote device */
+        // send on-off toggle command to remote device
         esp_zb_zcl_on_off_cmd_t cmd_req;
         cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
         cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
@@ -71,6 +72,27 @@ static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
         break;
     }
 }
+
+/*
+static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
+{
+    int a = 0;
+    while(a<10) {
+        // send on-off toggle command to remote device
+        esp_zb_zcl_on_off_cmd_t cmd_req;
+        cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
+        cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
+        cmd_req.zcl_basic_cmd.src_endpoint = HA_ONOFF_SWITCH_ENDPOINT;
+        cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
+        cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+        esp_zb_lock_acquire(portMAX_DELAY);
+        esp_zb_zcl_on_off_cmd_req(&cmd_req);
+        esp_zb_lock_release();
+        ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
+        a++;
+    }
+}
+*/
 
 static esp_err_t deferred_driver_init(void)
 {
@@ -295,59 +317,6 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
     }
     return ret;
 }
-
-// zigbee2Mqtt requires a manufacturer name and model to be present in the basic cluster of the zigbee device.
-// https://github.com/espressif/esp-idf/issues/10662
-// static void esp_zb_task(void *pvParameters)
-// {
-//     /* initialize Zigbee stack with Zigbee end-device config */
-//     esp_zb_cfg_t zb_nwk_cfg = ESP_ZB_ZED_CONFIG();
-//     esp_zb_init(&zb_nwk_cfg);
-//     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
-
-//     /* set the on-off light device config */
-//     uint8_t test_attr, test_attr2;
- 
-//     test_attr = 0;
-//     test_attr2 = 4;
-//     /* basic cluster create with fully customized */
-//     esp_zb_attribute_list_t *esp_zb_basic_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_BASIC);
-//     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &test_attr);
-//     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_POWER_SOURCE_ID, &test_attr2);
-//     esp_zb_cluster_update_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &test_attr2);
-//     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MODEL_IDENTIFIER_ID, &modelid[0]);
-//     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MANUFACTURER_NAME_ID, &manufname[0]);
-//     /* identify cluster create with fully customized */
-//     esp_zb_attribute_list_t *esp_zb_identify_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_IDENTIFY);
-//     esp_zb_identify_cluster_add_attr(esp_zb_identify_cluster, ESP_ZB_ZCL_ATTR_IDENTIFY_IDENTIFY_TIME_ID, &test_attr);
-//     /* group cluster create with fully customized */
-//     esp_zb_attribute_list_t *esp_zb_groups_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_GROUPS);
-//     esp_zb_groups_cluster_add_attr(esp_zb_groups_cluster, ESP_ZB_ZCL_ATTR_GROUPS_NAME_SUPPORT_ID, &test_attr);
-//     /* scenes cluster create with standard cluster + customized */
-//     esp_zb_attribute_list_t *esp_zb_scenes_cluster = esp_zb_scenes_cluster_create(NULL);
-//     esp_zb_cluster_update_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_NAME_SUPPORT_ID, &test_attr);
-//     /* on-off cluster create with standard cluster config*/
-//     esp_zb_on_off_cluster_cfg_t on_off_cfg;
-//     on_off_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
-//     esp_zb_attribute_list_t *esp_zb_on_off_cluster = esp_zb_on_off_cluster_create(&on_off_cfg);
-//     /* create cluster lists for this endpoint */
-//     esp_zb_cluster_list_t *esp_zb_cluster_list = esp_zb_zcl_cluster_list_create();
-//     esp_zb_cluster_list_add_basic_cluster(esp_zb_cluster_list, esp_zb_basic_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-//     /* update basic cluster in the existed cluster list */
-//     //esp_zb_cluster_list_update_basic_cluster(esp_zb_cluster_list, esp_zb_basic_cluster_create(NULL), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-//     esp_zb_cluster_list_add_identify_cluster(esp_zb_cluster_list, esp_zb_identify_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-//     esp_zb_cluster_list_add_groups_cluster(esp_zb_cluster_list, esp_zb_groups_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-//     esp_zb_cluster_list_add_scenes_cluster(esp_zb_cluster_list, esp_zb_scenes_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-//     esp_zb_cluster_list_add_on_off_cluster(esp_zb_cluster_list, esp_zb_on_off_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
-
-//     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
-//     /* add created endpoint (cluster_list) to endpoint list */
-//     esp_zb_ep_list_add_ep(esp_zb_ep_list, esp_zb_cluster_list, HA_ESP_LIGHT_ENDPOINT, ESP_ZB_AF_HA_PROFILE_ID, ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID);
-//     esp_zb_device_register(esp_zb_ep_list);
-//     esp_zb_core_action_handler_register(zb_action_handler);
-//     ESP_ERROR_CHECK(esp_zb_start(false));
-//     esp_zb_main_loop_iteration();
-// }
 
 static void esp_zb_task(void *pvParameters)
 {
