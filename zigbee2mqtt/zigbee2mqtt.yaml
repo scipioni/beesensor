@@ -36,17 +36,20 @@ advanced:
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
+  log_level: debug
 device_options:
   legacy: false
 devices:
   '0x543204fffe0b483c':
     friendly_name: '0x543204fffe0b483c'
-  '0x543204fffe08bd1c':
-    friendly_name: '0x543204fffe08bd1c'
   '0x543204fffe0814ec':
     friendly_name: '0x543204fffe0814ec'
-  '0xa4c138bc3e02734d':
-    friendly_name: '0xa4c138bc3e02734d'
+  '0x543204fffe081c90':
+    friendly_name: '0x543204fffe081c90'
+  '0x543204fffe0b4064':
+    friendly_name: '0x543204fffe0b4064'
+  '0x543204fffe08bd1c':
+    friendly_name: '0x543204fffe08bd1c'
 external_converters:
   - external/esp32c6-light.js
 permit_join: true
