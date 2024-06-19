@@ -1,10 +1,14 @@
-const {identify, onOff} = require('zigbee-herdsman-converters/lib/modernExtend');
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const e = exposes.presets;
 
 const definition = {
-    zigbeeModel: ['Galileo.Led'],
-    model: 'Galileo.Led',
-    vendor: 'Galileo',
-    description: 'Led device',
+    zigbeeModel: ['ESP32C6.Switch'],
+    model: 'ESP32C6.Switch',
+    vendor: 'Espressif',
+    description: 'My super switch!',
     fromZigbee: [fz.on_off],
     toZigbee: [tz.on_off],
     exposes: [e.switch()],
