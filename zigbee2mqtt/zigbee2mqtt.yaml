@@ -46,11 +46,10 @@ devices:
     friendly_name: '0x543204fffe0814ec'
   '0x543204fffe081c90':
     friendly_name: '0x543204fffe081c90'
-  '0x543204fffe0b4064':
-    friendly_name: '0x543204fffe0b4064'
   '0x543204fffe08bd1c':
     friendly_name: '0x543204fffe08bd1c'
 external_converters:
+  - external/esp32c6-switch.js
   - external/esp32c6-light.js
 permit_join: true
 log_level: debug

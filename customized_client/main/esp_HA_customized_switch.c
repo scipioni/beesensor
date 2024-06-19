@@ -29,7 +29,7 @@
 
 unsigned int led_time_ms = 500;
 
-char modelid[] = {13, 'E', 'S', 'P', '3', '2', 'C', '6', '.', 'L', 'i', 'g', 'h', 't'};
+char modelid[] = {14, 'E', 'S', 'P', '3', '2', 'C', '6', '.', 'S', 'w', 'i', 't', 'c', 'h'};
 char manufname[] = {9, 'E', 's', 'p', 'r', 'e', 's', 's', 'i', 'f'};
 static const char *TAG = "ESP_HA_ON_OFF_SWITCH";
 
