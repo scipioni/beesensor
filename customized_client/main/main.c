@@ -11,7 +11,7 @@
  * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied.
  */
-#include "esp_HA_customized_switch.h"
+#include "config.h"
 #include "esp_check.h"
 #include "esp_err.h"
 #include "esp_log.h"
@@ -20,8 +20,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "zcl/esp_zigbee_zcl_common.h"
+#include "ha/esp_zigbee_ha_standard.h"
 
-#define LED 15
+
 
 #if !defined ZB_ED_ROLE
 #error Define ZB_ED_ROLE in idf.py menuconfig to compile light switch (End Device) source code.
@@ -29,21 +30,23 @@
 
 unsigned int led_time_ms = 500;
 
-char modelid[] = {13, 'E', 'S', 'P', '3', '2', 'C', '6', '.', 'L', 'i', 'g', 'h', 't'};
-char manufname[] = {9, 'E', 's', 'p', 'r', 'e', 's', 's', 'i', 'f'};
-static const char *TAG = "ESP_HA_ON_OFF_SWITCH";
+char modelid[] = MODEL_ID;
+char manufname[] = MODEL_MANUFACTER;
+
+static const char *TAG = "ESP_END_DEVICE";
 
 static switch_func_pair_t button_func_pair[] = {
-    {GPIO_INPUT_IO_TOGGLE_SWITCH, SWITCH_ONOFF_TOGGLE_CONTROL}
-};
+    {GPIO_INPUT_IO_TOGGLE_SWITCH, SWITCH_ONOFF_TOGGLE_CONTROL}};
 
-typedef struct light_bulb_device_params_s {
+typedef struct light_bulb_device_params_s
+{
     esp_zb_ieee_addr_t ieee_addr;
-    uint8_t  endpoint;
+    uint8_t endpoint;
     uint16_t short_addr;
 } light_bulb_device_params_t;
 
-typedef struct zdo_info_ctx_s {
+typedef struct zdo_info_ctx_s
+{
     uint8_t endpoint;
     uint16_t short_addr;
 } zdo_info_user_ctx_t;
@@ -51,11 +54,12 @@ typedef struct zdo_info_ctx_s {
 /* remote device struct for recording and managing node info */
 light_bulb_device_params_t on_off_light;
 
-
 static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
 {
-    switch (button_func_pair->func) {
-    case SWITCH_ONOFF_TOGGLE_CONTROL: {
+    switch (button_func_pair->func)
+    {
+    case SWITCH_ONOFF_TOGGLE_CONTROL:
+    {
         // send on-off toggle command to remote device
         esp_zb_zcl_on_off_cmd_t cmd_req;
         cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
@@ -67,7 +71,8 @@ static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
         esp_zb_zcl_on_off_cmd_req(&cmd_req);
         esp_zb_lock_release();
         ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
-    } break;
+    }
+    break;
     default:
         break;
     }
@@ -108,7 +113,8 @@ static void bdb_start_top_level_commissioning_cb(uint8_t mode_mask)
 
 static void bind_cb(esp_zb_zdp_status_t zdo_status, void *user_ctx)
 {
-    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS) {
+    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS)
+    {
         ESP_LOGI(TAG, "Bind response from address(0x%x), endpoint(%d) with status(%d)", ((zdo_info_user_ctx_t *)user_ctx)->short_addr,
                  ((zdo_info_user_ctx_t *)user_ctx)->endpoint, zdo_status);
         /* configure report attribute command */
@@ -131,7 +137,8 @@ static void bind_cb(esp_zb_zdp_status_t zdo_status, void *user_ctx)
 
 static void ieee_cb(esp_zb_zdp_status_t zdo_status, esp_zb_ieee_addr_t ieee_addr, void *user_ctx)
 {
-    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS) {
+    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS)
+    {
         memcpy(&(on_off_light.ieee_addr), ieee_addr, sizeof(esp_zb_ieee_addr_t));
         ESP_LOGI(TAG, "IEEE address: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
                  ieee_addr[7], ieee_addr[6], ieee_addr[5], ieee_addr[4],
@@ -148,15 +155,17 @@ static void ieee_cb(esp_zb_zdp_status_t zdo_status, esp_zb_ieee_addr_t ieee_addr
         static zdo_info_user_ctx_t test_info_ctx;
         test_info_ctx.endpoint = HA_ONOFF_SWITCH_ENDPOINT;
         test_info_ctx.short_addr = on_off_light.short_addr;
-        esp_zb_zdo_device_bind_req(&bind_req, bind_cb, (void *) & (test_info_ctx));
+        esp_zb_zdo_device_bind_req(&bind_req, bind_cb, (void *)&(test_info_ctx));
     }
 }
 
 static void ep_cb(esp_zb_zdp_status_t zdo_status, uint8_t ep_count, uint8_t *ep_id_list, void *user_ctx)
 {
-    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS) {
+    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS)
+    {
         ESP_LOGI(TAG, "Active endpoint response: status(%d) and endpoint count(%d)", zdo_status, ep_count);
-        for (int i = 0; i < ep_count; i++) {
+        for (int i = 0; i < ep_count; i++)
+        {
             ESP_LOGI(TAG, "Endpoint ID List: %d", ep_id_list[i]);
         }
     }
@@ -164,11 +173,13 @@ static void ep_cb(esp_zb_zdp_status_t zdo_status, uint8_t ep_count, uint8_t *ep_
 
 static void simple_desc_cb(esp_zb_zdp_status_t zdo_status, esp_zb_af_simple_desc_1_1_t *simple_desc, void *user_ctx)
 {
-    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS) {
+    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS)
+    {
         ESP_LOGI(TAG, "Simple desc response: status(%d), device_id(%d), app_version(%d), profile_id(0x%x), endpoint_ID(%d)", zdo_status,
                  simple_desc->app_device_id, simple_desc->app_device_version, simple_desc->app_profile_id, simple_desc->endpoint);
 
-        for (int i = 0; i < (simple_desc->app_input_cluster_count + simple_desc->app_output_cluster_count); i++) {
+        for (int i = 0; i < (simple_desc->app_input_cluster_count + simple_desc->app_output_cluster_count); i++)
+        {
             ESP_LOGI(TAG, "Cluster ID list: 0x%x", *(simple_desc->app_cluster_list + i));
         }
     }
@@ -176,7 +187,8 @@ static void simple_desc_cb(esp_zb_zdp_status_t zdo_status, esp_zb_af_simple_desc
 
 static void user_find_cb(esp_zb_zdp_status_t zdo_status, uint16_t addr, uint8_t endpoint, void *user_ctx)
 {
-    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS) {
+    if (zdo_status == ESP_ZB_ZDP_STATUS_SUCCESS)
+    {
         ESP_LOGI(TAG, "Match desc response: status(%d), address(0x%x), endpoint(%d)", zdo_status, addr, endpoint);
         /* save into remote device record structure for future use */
         on_off_light.endpoint = endpoint;
@@ -212,18 +224,22 @@ static void user_find_cb(esp_zb_zdp_status_t zdo_status, uint16_t addr, uint8_t 
 
 void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 {
-    uint32_t *p_sg_p       = signal_struct->p_app_signal;
+    uint32_t *p_sg_p = signal_struct->p_app_signal;
     esp_err_t err_status = signal_struct->esp_err_status;
     esp_zb_app_signal_type_t sig_type = *p_sg_p;
     esp_zb_zdo_signal_leave_params_t *leave_params = NULL;
-    switch (sig_type) {
+    switch (sig_type)
+    {
     case ESP_ZB_BDB_SIGNAL_DEVICE_FIRST_START:
     case ESP_ZB_BDB_SIGNAL_DEVICE_REBOOT:
     case ESP_ZB_BDB_SIGNAL_STEERING:
-        if (err_status != ESP_OK) {
-            ESP_LOGW(TAG, "Stack %s failure with %s status, steering",esp_zb_zdo_signal_to_string(sig_type), esp_err_to_name(err_status));
+        if (err_status != ESP_OK)
+        {
+            ESP_LOGW(TAG, "Stack %s failure with %s status, steering", esp_zb_zdo_signal_to_string(sig_type), esp_err_to_name(err_status));
             esp_zb_scheduler_alarm((esp_zb_callback_t)bdb_start_top_level_commissioning_cb, ESP_ZB_BDB_MODE_NETWORK_STEERING, 1000);
-        } else {
+        }
+        else
+        {
             /* device auto start successfully and on a formed network */
             ESP_LOGI(TAG, "Deferred driver initialization %s", deferred_driver_init() ? "failed" : "successful");
             esp_zb_ieee_addr_t extended_pan_id;
@@ -232,7 +248,7 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
                      extended_pan_id[7], extended_pan_id[6], extended_pan_id[5], extended_pan_id[4],
                      extended_pan_id[3], extended_pan_id[2], extended_pan_id[1], extended_pan_id[0],
                      esp_zb_get_pan_id(), esp_zb_get_current_channel(), esp_zb_get_short_address());
-            esp_zb_zdo_match_desc_req_param_t  find_req;
+            esp_zb_zdo_match_desc_req_param_t find_req;
             find_req.addr_of_interest = 0x0000;
             find_req.dst_nwk_addr = 0x0000;
             /* find the match on-off light device */
@@ -241,7 +257,8 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
         break;
     case ESP_ZB_ZDO_SIGNAL_LEAVE:
         leave_params = (esp_zb_zdo_signal_leave_params_t *)esp_zb_app_signal_get_params(p_sg_p);
-        if (leave_params->leave_type == ESP_ZB_NWK_LEAVE_TYPE_RESET) {
+        if (leave_params->leave_type == ESP_ZB_NWK_LEAVE_TYPE_RESET)
+        {
             ESP_LOGI(TAG, "Reset device");
         }
         break;
@@ -251,7 +268,6 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
         break;
     }
 }
-
 
 static esp_err_t zb_attribute_reporting_handler(const esp_zb_zcl_report_attr_message_t *message)
 {
@@ -272,7 +288,8 @@ static esp_err_t zb_read_attr_resp_handler(const esp_zb_zcl_cmd_read_attr_resp_m
                         message->info.status);
 
     esp_zb_zcl_read_attr_resp_variable_t *variable = message->variables;
-    while (variable) {
+    while (variable)
+    {
         ESP_LOGI(TAG, "Read attribute response: status(%d), cluster(0x%x), attribute(0x%x), type(0x%x), value(%d)", variable->status,
                  message->info.cluster, variable->attribute.id, variable->attribute.data.type,
                  variable->attribute.data.value ? *(uint8_t *)variable->attribute.data.value : 0);
@@ -289,7 +306,8 @@ static esp_err_t zb_configure_report_resp_handler(const esp_zb_zcl_cmd_config_re
                         message->info.status);
 
     esp_zb_zcl_config_report_resp_variable_t *variable = message->variables;
-    while (variable) {
+    while (variable)
+    {
         ESP_LOGI(TAG, "Configure report response: status(%d), cluster(0x%x), attribute(0x%x)", message->info.status, message->info.cluster,
                  variable->attribute_id);
         variable = variable->next;
@@ -301,7 +319,8 @@ static esp_err_t zb_configure_report_resp_handler(const esp_zb_zcl_cmd_config_re
 static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id, const void *message)
 {
     esp_err_t ret = ESP_OK;
-    switch (callback_id) {
+    switch (callback_id)
+    {
     case ESP_ZB_CORE_REPORT_ATTR_CB_ID:
         ret = zb_attribute_reporting_handler((esp_zb_zcl_report_attr_message_t *)message);
         break;
@@ -323,24 +342,25 @@ static void esp_zb_task(void *pvParameters)
     /* initialize Zigbee stack */
     esp_zb_cfg_t zb_nwk_cfg = ESP_ZB_ZED_CONFIG();
     esp_zb_init(&zb_nwk_cfg);
-    esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
-    //esp_zb_set_secondary_network_channel_set(ESP_ZB_SECONDARY_CHANNEL_MASK);
-    
-    uint8_t test_attr;
-    test_attr = 0;
-    /* basic cluster create with fully customized */
+
+
+    /* basic cluster */
+    uint8_t zcl_version = 3;
+    uint8_t power_source = 1;
     esp_zb_attribute_list_t *esp_zb_basic_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_BASIC);
-    esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &test_attr);
-    esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_POWER_SOURCE_ID, &test_attr);
-    esp_zb_cluster_update_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &test_attr);
+    esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &zcl_version);
+    esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_POWER_SOURCE_ID, &power_source);
+    //esp_zb_cluster_update_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &zcl_version);
 
     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MODEL_IDENTIFIER_ID, &modelid[0]);
     esp_zb_basic_cluster_add_attr(esp_zb_basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MANUFACTURER_NAME_ID, &manufname[0]);
 
-
-    /* identify cluster create with fully customized */
+    /* identify cluster */
+    uint8_t identify_time=0;
     esp_zb_attribute_list_t *esp_zb_identify_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_IDENTIFY);
-    esp_zb_identify_cluster_add_attr(esp_zb_identify_cluster, ESP_ZB_ZCL_ATTR_IDENTIFY_IDENTIFY_TIME_ID, &test_attr);
+    esp_zb_identify_cluster_add_attr(esp_zb_identify_cluster, ESP_ZB_ZCL_ATTR_IDENTIFY_IDENTIFY_TIME_ID, &identify_time);
+    
+    
     /* create client role of the cluster */
     esp_zb_attribute_list_t *esp_zb_on_off_client_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_ON_OFF);
     esp_zb_attribute_list_t *esp_zb_identify_client_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_IDENTIFY);
@@ -351,16 +371,27 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_cluster_list_add_on_off_cluster(esp_zb_cluster_list, esp_zb_on_off_client_cluster, ESP_ZB_ZCL_CLUSTER_CLIENT_ROLE);
     esp_zb_cluster_list_add_identify_cluster(esp_zb_cluster_list, esp_zb_identify_client_cluster, ESP_ZB_ZCL_CLUSTER_CLIENT_ROLE);
 
-    esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
+    // esempio HA
+    // esp_zb_on_off_light_cfg_t light_cfg = ESP_ZB_DEFAULT_ON_OFF_LIGHT_CONFIG(); // Zigbee HA standard on-off light device default config value.
+    // esp_zb_ep_list_t *esp_zb_on_off_light_ep = esp_zb_on_off_light_ep_create(HA_ESP_LIGHT_ENDPOINT, &light_cfg);
+    // esp_zb_device_register(esp_zb_on_off_light_ep);
+
     esp_zb_endpoint_config_t endpoint_config = {
-        .endpoint = HA_ONOFF_SWITCH_ENDPOINT,
-        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-        .app_device_id = ESP_ZB_HA_ON_OFF_SWITCH_DEVICE_ID,
-        .app_device_version = 0
-    };
+        .endpoint = HA_ONOFF_SWITCH_ENDPOINT, // 1
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID, /** HA profile ID */
+        .app_device_id = ESP_ZB_HA_ON_OFF_SWITCH_DEVICE_ID, /*!< General On/Off switch */
+        .app_device_version = 0};
+    esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     esp_zb_ep_list_add_ep(esp_zb_ep_list, esp_zb_cluster_list, endpoint_config);
     esp_zb_device_register(esp_zb_ep_list);
+
+
     esp_zb_core_action_handler_register(zb_action_handler);
+    esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
+    // esp_zb_set_secondary_network_channel_set(ESP_ZB_SECONDARY_CHANNEL_MASK);
+    // Erase NVRAM before creating connection to new Coordinator
+    // Comment out next line to erase NVRAM data if you are connecting to new Coordinator <----------------------------
+    esp_zb_nvram_erase_at_start(true);
     ESP_ERROR_CHECK(esp_zb_start(true));
     esp_zb_main_loop_iteration();
 }
@@ -368,7 +399,7 @@ static void esp_zb_task(void *pvParameters)
 static void led_task(void *pvParameters)
 {
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
-    
+
     while (1)
     {
         gpio_set_level(LED, 0);
@@ -378,7 +409,6 @@ static void led_task(void *pvParameters)
     }
 }
 
-
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -386,7 +416,9 @@ void app_main(void)
         .host_config = ESP_ZB_DEFAULT_HOST_CONFIG(),
     };
     ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(esp_zb_platform_config(&config));
+    ESP_ERROR_CHECK(esp_zb_platform_config(&config)); // configurazione zigbee
+
     xTaskCreate(led_task, "LED", 4096, NULL, 5, NULL);
-    xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
+    
+    xTaskCreate(esp_zb_task, "MAIN", 4096, NULL, 5, NULL);
 }

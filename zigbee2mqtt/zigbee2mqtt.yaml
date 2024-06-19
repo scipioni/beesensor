@@ -41,6 +41,6 @@ device_options:
   legacy: false
 devices: devices.yaml
 external_converters:
-  - external/esp32c6-light.js
+  - external/galileo-led.js
 permit_join: true
 log_level: debug

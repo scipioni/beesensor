@@ -6,6 +6,7 @@ services:
     volumes:
       - ./zigbee2mqtt/zigbee2mqtt.yaml:/app/data/configuration.yaml
       - ./zigbee2mqtt/external:/app/data/external
+      - ./runtime/devices.yaml:/app/data/devices.yaml
     #   - /run/udev:/run/udev:ro
     devices:
       - ${SERIAL_COORDINATOR}:/dev/ttyACM0

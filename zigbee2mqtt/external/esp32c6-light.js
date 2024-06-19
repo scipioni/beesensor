@@ -5,10 +5,10 @@ const reporting = require('zigbee-herdsman-converters/lib/reporting');
 const e = exposes.presets;
 
 const definition = {
-    zigbeeModel: ['ESP32C6.Light'],
-    model: 'ESP32C6.Light',
-    vendor: 'Espressif',
-    description: 'My switch',
+    zigbeeModel: ['Galileo.Led'],
+    model: 'Galileo.Led',
+    vendor: 'Galileo',
+    description: 'Led device',
     fromZigbee: [fz.on_off],
     toZigbee: [tz.on_off],
     exposes: [e.switch()],

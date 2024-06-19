@@ -36,7 +36,7 @@ static switch_func_pair_t *switch_func_pair;
 static esp_switch_callback_t func_ptr;
 /* which button is pressed */
 static uint8_t switch_num;
-static const char *TAG = "ESP_USER_BUTTON";
+static const char *TAG = "ESP_ZB_SWITCH";
 
 static void switch_driver_gpios_intr_enabled(bool enabled);
 
@@ -146,7 +146,6 @@ static bool switch_driver_gpio_init(switch_func_pair_t *button_func_pair, uint8_
     for (int i = 0; i < button_num; ++i) {
         gpio_isr_handler_add((button_func_pair + i)->pin, gpio_isr_handler, (void *) (button_func_pair + i));
     }
-    ESP_LOGI(TAG, "Initialized user button");
     return true;
 }
 
