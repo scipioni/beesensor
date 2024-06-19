@@ -33,6 +33,8 @@ reboot
 
 start 
 ```
+cp env.sample .env
+touch runtime/devices.yaml
 docker compose up
 ```
 

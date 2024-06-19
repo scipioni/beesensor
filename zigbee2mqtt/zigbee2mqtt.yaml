@@ -4,52 +4,42 @@ mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mqtt
 serial:
-  port: /dev/ttyACM1
+  port: /dev/ttyACM0
 advanced:
-  network_key:
-    - 139
-    - 86
-    - 188
-    - 56
-    - 17
-    - 237
-    - 142
-    - 120
-    - 161
-    - 226
-    - 242
-    - 17
-    - 130
-    - 127
-    - 216
-    - 95
-  pan_id: 58593
-  ext_pan_id:
-    - 116
-    - 7
-    - 160
-    - 226
-    - 129
-    - 13
-    - 155
-    - 186
+  pan_id: 6755
+  # network_key:
+  #   - 139
+  #   - 86
+  #   - 188
+  #   - 56
+  #   - 17
+  #   - 237
+  #   - 142
+  #   - 120
+  #   - 161
+  #   - 226
+  #   - 242
+  #   - 17
+  #   - 130
+  #   - 127
+  #   - 216
+  #   - 95
+  # ext_pan_id:
+  #   - 116
+  #   - 7
+  #   - 160
+  #   - 226
+  #   - 129
+  #   - 13
+  #   - 155
+  #   - 186
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
   log_level: debug
 device_options:
   legacy: false
-devices:
-  '0x543204fffe0b483c':
-    friendly_name: '0x543204fffe0b483c'
-  '0x543204fffe0814ec':
-    friendly_name: '0x543204fffe0814ec'
-  '0x543204fffe081c90':
-    friendly_name: '0x543204fffe081c90'
-  '0x543204fffe0b4064':
-    friendly_name: '0x543204fffe0b4064'
-  '0x543204fffe08bd1c':
-    friendly_name: '0x543204fffe08bd1c'
+devices: devices.yaml
 external_converters:
   - external/esp32c6-light.js
 permit_join: true

@@ -8,7 +8,7 @@ services:
       - ./zigbee2mqtt/external:/app/data/external
     #   - /run/udev:/run/udev:ro
     devices:
-      - /dev/ttyACM1:/dev/ttyACM1
+      - ${SERIAL_COORDINATOR}:/dev/ttyACM0
     # privileged: true
     # restart: unless-stopped
     ports:
@@ -30,11 +30,11 @@ services:
   homeassistant:
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
-      - /PATH_TO_YOUR_CONFIG:/config
+      - ./runtime/homeassistant:/config
       - /etc/localtime:/etc/localtime:ro
-      - /run/dbus:/run/dbus:ro
+      #- /run/dbus:/run/dbus:ro
     # restart: unless-stopped
     # privileged: true
-    network_mode: host
+    #network_mode: host
     ports:
       - 8123:8123
