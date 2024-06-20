@@ -14,6 +14,7 @@
 
 #include "esp_zigbee_core.h"
 // #include "light_driver.h"
+#include "switch_driver.h"
 
 /* Zigbee configuration */
 #define INSTALLCODE_POLICY_ENABLE false /* enable the install code policy for security */
@@ -24,7 +25,7 @@
 
 #define ESP_ZB_ZED_CONFIG()                               \
     {                                                     \
-        .esp_zb_role = ESP_ZB_DEVICE_TYPE_ED,             \
+        .esp_zb_role = ESP_ZB_DEVICE_TYPE_ROUTER,             \
         .install_code_policy = INSTALLCODE_POLICY_ENABLE, \
         .nwk_cfg.zed_cfg = {                              \
             .ed_timeout = ED_AGING_TIMEOUT,               \

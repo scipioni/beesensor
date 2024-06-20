@@ -9,6 +9,12 @@ CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
 
 #
+# Serial flasher config
+#
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+# end of Serial flasher config
+
+#
 # mbedTLS
 #
 CONFIG_MBEDTLS_HARDWARE_AES=n
@@ -22,11 +28,15 @@ CONFIG_MBEDTLS_KEY_EXCHANGE_ECJPAKE=y
 CONFIG_MBEDTLS_ECJPAKE_C=y
 # end of mbedTLS
 
+
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
+
 #
 # Zboss
 #
 CONFIG_ZB_ENABLED=y
-CONFIG_ZB_ZED=y
+#CONFIG_ZB_ZED=y
+CONFIG_ZB_ZCZR=y
 # end of Zboss
 
 #
@@ -34,4 +44,3 @@ CONFIG_ZB_ZED=y
 #
 CONFIG_IEEE802154_RECEIVE_DONE_HANDLER=y
 # end of IEEE802154
-# end of Component config

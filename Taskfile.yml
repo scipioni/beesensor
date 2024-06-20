@@ -1,0 +1,18 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  start:
+    cmds:
+      - mkdir -p runtime
+      - touch runtime/devices.yaml
+      - docker compose up zigbee2mqtt mqtt

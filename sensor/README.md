@@ -39,20 +39,20 @@ Before project configuration and build, make sure to set the correct chip target
 
 ```
 # cd beesendsor/customized_client
-idf.py set-target esp32c6
+task target
 ```
 
 ## Erase the NVRAM 
 
 Before flash it to the board, it is recommended to erase NVRAM if user doesn't want to keep the previous examples or other projects stored info 
-using `idf.py -p /dev/ttyACM1 erase-flash`
+using `task erase`
 
 ## Build and Flash
 
 Build the project, flash it to the board, and start the monitor tool to view the serial output by running 
 
 ```bash
-idf.py -p /dev/ttyACM1 flash monitor
+task flash
 ```
 
 (To exit the serial monitor, type ``Ctrl-]``.)

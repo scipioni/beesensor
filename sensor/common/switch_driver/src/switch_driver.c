@@ -157,3 +157,18 @@ bool switch_driver_init(switch_func_pair_t *button_func_pair, uint8_t button_num
     func_ptr = cb;
     return true;
 }
+
+void configure_user_button(gpio_isr_t isr_handler)
+{
+    gpio_config_t io_conf;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE; // Interrompi alla caduta del segnale
+    io_conf.pin_bit_mask = (1ULL << GPIO_INPUT_IO_TOGGLE_SWITCH);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = 1; // Abilita la pull-up interna
+    gpio_config(&io_conf);
+
+    // Installa l'handler dell'interrupt per il pulsante
+    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    gpio_isr_handler_add(GPIO_INPUT_IO_TOGGLE_SWITCH, isr_handler, (void *)GPIO_INPUT_IO_TOGGLE_SWITCH);
+}
+

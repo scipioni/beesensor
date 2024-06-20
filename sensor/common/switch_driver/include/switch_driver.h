@@ -67,6 +67,9 @@ typedef void (*esp_switch_callback_t)(switch_func_pair_t *param);
  */
 bool switch_driver_init(switch_func_pair_t *button_func_pair, uint8_t button_num, esp_switch_callback_t cb);
 
+void configure_user_button(gpio_isr_t isr_handler);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
+

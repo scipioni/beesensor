@@ -6,3 +6,4 @@ managed_components
 .venv
 .env
 runtime
+sdkconfig.old
