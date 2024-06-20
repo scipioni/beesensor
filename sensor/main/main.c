@@ -22,6 +22,8 @@
 #include "esp_log.h"
 #include "esp_system.h"
 #include "nvs.h"
+#include "esp_zigbee_core.h"
+#include "iot_button.h"
 // #include "switch_driver.h"
 
 // #if !defined ZB_ED_ROLE
@@ -153,23 +155,42 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
     return ret;
 }
 
-// Handler per l'interrupt del pulsante
-static void IRAM_ATTR button_handler(void *arg)
+static void reset_and_reboot(void *arg, void *data)
 {
-    button_state = !button_state;
-    // ESP_LOGI(TAG, "user button %s", button_state ? "push" : "release");
-    // (l'uso delle funzioni di logging (ESP_LOGI) all'interno di un ISR può causare problemi)
-    if (button_state)
-    {
-        nvs_flash_erase();
-        esp_restart();
-    }
-    else
-    {
-        int prova = 1;
-    }
+    // ESP_EARLY_LOGI
+    ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
+    esp_zb_factory_reset();
+    led_time_ms = 50; // led intermittente per 2 secondi
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    esp_restart(); // poi reboot
 }
 
+static void button_event_cb(void *arg, void *data)
+{
+    ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
+}
+
+void button_init(uint32_t button_num)
+{
+    button_config_t btn_cfg = {
+        .type = BUTTON_TYPE_GPIO,
+        .gpio_button_config = {
+            .gpio_num = button_num,
+            .active_level = BUTTON_ACTIVE_LEVEL},
+    };
+    button_handle_t btn = iot_button_create(&btn_cfg);
+    assert(btn);
+    esp_err_t err = iot_button_register_cb(btn, BUTTON_SINGLE_CLICK, button_event_cb, (void *)BUTTON_SINGLE_CLICK);
+    // err |= iot_button_register_cb(btn, BUTTON_PRESS_DOWN, button_event_cb, (void *)BUTTON_PRESS_DOWN);
+    // err |= iot_button_register_cb(btn, BUTTON_PRESS_UP, button_event_cb, (void *)BUTTON_PRESS_UP);
+    // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT, button_event_cb, (void *)BUTTON_PRESS_REPEAT);
+    // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT_DONE, button_event_cb, (void *)BUTTON_PRESS_REPEAT_DONE);
+    // err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, button_event_cb, (void *)BUTTON_DOUBLE_CLICK);
+    // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, button_event_cb, (void *)BUTTON_LONG_PRESS_START);
+    // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_HOLD, button_event_cb, (void *)BUTTON_LONG_PRESS_HOLD);
+    err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_UP, reset_and_reboot, (void *)BUTTON_LONG_PRESS_UP);
+    ESP_ERROR_CHECK(err);
+}
 
 static void esp_zb_task(void *pvParameters)
 {
@@ -249,7 +270,6 @@ static void led_task(void *pvParameters)
     }
 }
 
-
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -258,8 +278,8 @@ void app_main(void)
     };
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
-    configure_user_button(button_handler);
+    // configure_user_button(button_handler);
+    button_init(BOOT_BUTTON_NUM);
     xTaskCreate(led_task, "LED", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
-
 }
