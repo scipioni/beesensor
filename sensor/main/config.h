@@ -25,7 +25,7 @@
 
 #define ESP_ZB_ZED_CONFIG()                               \
     {                                                     \
-        .esp_zb_role = ESP_ZB_DEVICE_TYPE_ROUTER,             \
+        .esp_zb_role = ESP_ZB_DEVICE_TYPE_ROUTER,         \
         .install_code_policy = INSTALLCODE_POLICY_ENABLE, \
         .nwk_cfg.zed_cfg = {                              \
             .ed_timeout = ED_AGING_TIMEOUT,               \
@@ -56,4 +56,3 @@
 
 #define MODEL_ID {11, 'g', 'a', 'l', 'i', 'l', 'e', 'o', '.', 'l', 'e', 'd'}
 #define MODEL_MANUFACTER {7, 'G', 'a', 'l', 'i', 'l', 'e', 'o'}
-

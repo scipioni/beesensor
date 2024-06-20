@@ -1,5 +1,4 @@
 build/
-sdkconfig
 sdkconfig.oldmanaged_components
 dependencies.lock
 managed_components
@@ -7,3 +6,4 @@ managed_components
 .env
 runtime
 sdkconfig.old
+.vscode/
