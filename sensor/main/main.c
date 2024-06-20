@@ -20,9 +20,9 @@
 #include "ha/esp_zigbee_ha_standard.h"
 #include "driver/gpio.h"
 
-#if !defined ZB_ED_ROLE
-#error Define ZB_ED_ROLE in idf.py menuconfig to compile light (End Device) source code.
-#endif
+// #if !defined ZB_ED_ROLE
+// #error Define ZB_ED_ROLE in idf.py menuconfig to compile light (End Device) source code.
+// #endif
 
 #define LED 15
 
@@ -211,7 +211,7 @@ static void esp_zb_task(void *pvParameters)
 
     // Erase NVRAM before creating connection to new Coordinator
     // Comment out next line to erase NVRAM data if you are connecting to new Coordinator <----------------------------
-    //esp_zb_nvram_erase_at_start(true);
+    esp_zb_nvram_erase_at_start(true);
 
     ESP_ERROR_CHECK(esp_zb_start(false));
     esp_zb_main_loop_iteration();
