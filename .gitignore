@@ -7,3 +7,4 @@ managed_components
 runtime
 sdkconfig.old
 .vscode/
+sdkconfig

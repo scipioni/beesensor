@@ -19,6 +19,9 @@
 #include "freertos/task.h"
 #include "ha/esp_zigbee_ha_standard.h"
 #include "driver/gpio.h"
+#include "esp_log.h"
+#include "esp_system.h"
+#include "nvs.h"
 // #include "switch_driver.h"
 
 // #if !defined ZB_ED_ROLE
@@ -27,7 +30,7 @@
 
 #define LED 15
 
-bool button_state = 0;
+bool button_state = false;
 
 unsigned int led_time_ms = 500;
 char modelid[] = MODEL_ID;
@@ -154,14 +157,16 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
 static void IRAM_ATTR button_handler(void *arg)
 {
     button_state = !button_state;
-    //ESP_LOGI(TAG, "user button %s", button_state ? "push" : "release");
+    // ESP_LOGI(TAG, "user button %s", button_state ? "push" : "release");
+    // (l'uso delle funzioni di logging (ESP_LOGI) all'interno di un ISR può causare problemi)
     if (button_state)
     {
-        led_time_ms = 100;
+        nvs_flash_erase();
+        esp_restart();
     }
     else
     {
-        led_time_ms = 500;
+        int prova = 1;
     }
 }
 
