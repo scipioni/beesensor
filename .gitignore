@@ -8,3 +8,4 @@ runtime
 sdkconfig.old
 .vscode/
 sdkconfig
+.task
