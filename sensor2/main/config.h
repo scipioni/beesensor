@@ -20,7 +20,7 @@
 #define ED_AGING_TIMEOUT ESP_ZB_ED_AGING_TIMEOUT_64MIN
 #define ED_KEEP_ALIVE 3000                                               /* 3000 millisecond */
 #define HA_ESP_LIGHT_ENDPOINT 10                                         /* esp light bulb device endpoint, used to process light controlling commands */
-#define SENSOR_ENDPOINT 10 // per adesso uguale a HA_ESP_LIGHT_ENDPOINT
+#define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_LIGHT_ENDPOINT
 #define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK /* Zigbee primary channel mask use in the example */
 
 #define ESP_ZB_ZED_CONFIG()                               \
@@ -43,17 +43,18 @@
         .host_connection_mode = ZB_HOST_CONNECTION_MODE_NONE, \
     }
 
-#define MANUFACTURER_NAME               "\x07""Galileo" // numero caratteri
-#define MODEL_IDENTIFIER                "\x0E""galileo.sensor" // numero caratteri
-
+#define MANUFACTURER_NAME "\x07" \
+                          "Galileo" // numero caratteri
+#define MODEL_IDENTIFIER "\x0E" \
+                         "galileo.sensor" // numero caratteri
 
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32H2 || CONFIG_IDF_TARGET_ESP32C6
-#define BOOT_BUTTON_NUM         9
+#define BOOT_BUTTON_NUM 9
 #else
-#define BOOT_BUTTON_NUM         0
+#define BOOT_BUTTON_NUM 0
 #endif
 
-#define BUTTON_ACTIVE_LEVEL     0
+#define BUTTON_ACTIVE_LEVEL 0
 
 const char *button_event_table[] = {
     "BUTTON_PRESS_DOWN",
@@ -70,3 +71,6 @@ const char *button_event_table[] = {
 
 #define LED 15
 
+// In the SDK, there is a special function to create custom clusters (not described in the documentation), but there is a restriction they should be the type of 0xFxxx other variants in the SDK prohibited.
+#define VALUE_CUSTOM_CLUSTER 0xFFF2 /* Custom cluster used because standard cluster not working */
+#define CO2_CUSTOM_CLUSTER              0xFFF2                           
