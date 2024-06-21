@@ -1,5 +1,4 @@
 build/
-sdkconfig.oldmanaged_components
 dependencies.lock
 managed_components
 .venv
