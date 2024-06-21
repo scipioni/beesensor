@@ -13,8 +13,6 @@
  */
 
 #include "esp_zigbee_core.h"
-// #include "light_driver.h"
-//#include "switch_driver.h"
 #include "esp_idf_version.h"
 
 /* Zigbee configuration */
@@ -44,29 +42,16 @@
         .host_connection_mode = ZB_HOST_CONNECTION_MODE_NONE, \
     }
 
-/*
-#define MODEL_ID {13, 'H', 'L', 'Q', 'D', 'Q', '0', '1', 'L', 'M'}
-#define MODEL_MANUFACTER {9, 'X', 'i', 'a', 'o', 'm', 'i'}
-*/
-
-/*
-#define MODEL_ID {17, 'l', 'u', 'm', 'i', '.', 'l', 'i', 'g', 'h', 't', '.', 'c', 'b', 'a', 'c', 'n', '1'}
-#define MODEL_MANUFACTER {4, 'L', 'U', 'M', 'I'}
-*/
+#define MANUFACTURER_NAME               "\x07""Galileo" // numero caratteri
+#define MODEL_IDENTIFIER                "\x0E""galileo.sensor" // numero caratteri
 
 
-#define MODEL_ID {11, 'g', 'a', 'l', 'i', 'l', 'e', 'o', '.', 'l', 'e', 'd'}
-#define MODEL_MANUFACTER {7, 'G', 'a', 'l', 'i', 'l', 'e', 'o'}
-
-
-/* Most development boards have "boot" button attached to GPIO0.
- * You can also change this to another pin.
- */
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C2 || CONFIG_IDF_TARGET_ESP32H2 || CONFIG_IDF_TARGET_ESP32C6
 #define BOOT_BUTTON_NUM         9
 #else
 #define BOOT_BUTTON_NUM         0
 #endif
+
 #define BUTTON_ACTIVE_LEVEL     0
 
 const char *button_event_table[] = {
@@ -81,3 +66,5 @@ const char *button_event_table[] = {
     "BUTTON_LONG_PRESS_HOLD",
     "BUTTON_LONG_PRESS_UP",
 };
+
+#define LED 15

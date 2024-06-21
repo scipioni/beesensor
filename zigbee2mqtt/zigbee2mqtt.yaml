@@ -43,6 +43,6 @@ devices: devices.yaml
 external_converters:
   - external/esp32c6-switch.js
   - external/esp32c6-light.js
-  - external/galileo-led.js
+  - external/galileo-sensor.js
 permit_join: false
 log_level: debug

@@ -25,6 +25,11 @@ tasks:
     deps: [target]
     cmds:
       - idf.py build
+  
+  rebuild:
+    cmds:
+      - rm -f sdkconfig
+      - task: build
 
   flash:
     deps: [target]
