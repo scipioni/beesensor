@@ -26,7 +26,7 @@ const definition = {
             name: 'temperature',
             cluster: 'msTemperatureMeasurement',
             attribute: 'measuredValue',
-            reporting: {min: '5_SECONDS', max: '10_SECONDS', change: 1},
+            reporting: {min: 0, max: 300, change: 1},
             description: 'Measured temperature value',
             unit: '°C',
             scale: 100,
