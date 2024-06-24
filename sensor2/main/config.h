@@ -72,7 +72,7 @@ const char *button_event_table[] = {
 #define LED 15
 
 // In the SDK, there is a special function to create custom clusters (not described in the documentation), but there is a restriction they should be the type of 0xFxxx other variants in the SDK prohibited.
-#define VALUE_CUSTOM_CLUSTER 0xFFF2 /* Custom cluster used because standard cluster not working */
+#define CLUSTER_ID_CUSTOM 0xFFF2 /* Custom cluster used because standard cluster not working */
 #define CO2_CUSTOM_CLUSTER              0xFFF2
 
 

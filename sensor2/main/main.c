@@ -414,12 +414,12 @@ static void esp_zb_task(void *pvParameters)
     /* Custom cluster for CO2 ( standart cluster not working), solution only for HOMEd */
     // https://habr.com/ru/articles/759964/
     // https://github.com/lmahmutov/esp32_c6_co2_sensor/blob/main/main/esp_zigbee_co2.c
-    // const uint16_t attr_id = 0;
-    // const uint8_t attr_type = ESP_ZB_ZCL_ATTR_TYPE_U16;
-    // const uint8_t attr_access = ESP_ZB_ZCL_ATTR_MANUF_SPEC | ESP_ZB_ZCL_ATTR_ACCESS_READ_ONLY | ESP_ZB_ZCL_ATTR_ACCESS_REPORTING;
-    // esp_zb_attribute_list_t *custom_value_attributes_list = esp_zb_zcl_attr_list_create(VALUE_CUSTOM_CLUSTER);
-    // esp_zb_custom_cluster_add_custom_attr(custom_value_attributes_list, attr_id, attr_type, attr_access, &null_values);
-    // ESP_ERROR_CHECK(esp_zb_cluster_list_add_custom_cluster(cluster_list, custom_value_attributes_list, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    const uint16_t attr_id = 0;
+    const uint8_t attr_type = ESP_ZB_ZCL_ATTR_TYPE_U16;
+    const uint8_t attr_access = ESP_ZB_ZCL_ATTR_MANUF_SPEC | ESP_ZB_ZCL_ATTR_ACCESS_READ_ONLY | ESP_ZB_ZCL_ATTR_ACCESS_REPORTING;
+    esp_zb_attribute_list_t *custom_value_attributes_list = esp_zb_zcl_attr_list_create(CLUSTER_ID_CUSTOM);
+    esp_zb_custom_cluster_add_custom_attr(custom_value_attributes_list, attr_id, attr_type, attr_access, &null_values);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_custom_cluster(cluster_list, custom_value_attributes_list, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
     /* Create customized temperature sensor endpoint */
     esp_zb_temperature_sensor_cfg_t sensor_cfg = ESP_ZB_DEFAULT_TEMPERATURE_SENSOR_CONFIG();
