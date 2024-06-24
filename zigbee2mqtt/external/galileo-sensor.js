@@ -12,15 +12,16 @@ const definition = {
     extend: [
         identify(), 
         onOff({"powerOnBehavior":false}),
-        numeric({
-            name: 'analog_value',
-            unit: 'analog value',
-            cluster: 'genAnalogValue',
-            attribute: 'presentValue',
-            description: 'analog value',
-            access: 'STATE',
-            //reporting: defaultReporting, // lato sensore deve essere implementato il comando
-        }),
+        // numeric({
+        //     name: 'analog_value',
+        //     unit: 'analog value',
+        //     cluster: 'genAnalogValue',
+        //     attribute: 'presentValue',
+        //     description: 'analog value',
+        //     access: 'STATE_GET',
+        //     reporting: {min: '5_SECONDS', max: '10_SECONDS', change: 1},
+        //     //reporting: defaultReporting, // lato sensore deve essere implementato il comando
+        // }),
         numeric({
             name: 'temperature',
             cluster: 'msTemperatureMeasurement',
