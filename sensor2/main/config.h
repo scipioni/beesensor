@@ -76,6 +76,6 @@ const char *button_event_table[] = {
 #define CO2_CUSTOM_CLUSTER              0xFFF2
 
 
-#define ESP_TEMP_SENSOR_UPDATE_INTERVAL (1)     /* Local sensor update interval (second) */
+#define ESP_TEMP_SENSOR_UPDATE_INTERVAL (10)     /* Local sensor update interval (second) */
 #define ESP_TEMP_SENSOR_MIN_VALUE       (-10)   /* Local sensor min measured value (degree Celsius) */
 #define ESP_TEMP_SENSOR_MAX_VALUE       (80)    /* Local sensor max measured value (degree Celsius) */

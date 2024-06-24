@@ -1,8 +1,17 @@
 // from https://github.com/Koenkk/zigbee-herdsman-converters/blob/cbaa6f45dcb61822ed7a44493ec304b386aaf08a/src/devices/efekta.ts#L54
 
-const {identify, onOff, numeric} = require('zigbee-herdsman-converters/lib/modernExtend');
+const { identify, onOff, numeric, temperature } = require('zigbee-herdsman-converters/lib/modernExtend');
+//const reporting = require('zigbee-herdsman-converters/lib/reporting');
 
-const defaultReporting = {min: 0, max: 300, change: 1};
+// const dataType = {
+//     boolean: 0x10,
+//     uint8: 0x20,
+//     uint16: 0x21,
+//     int8: 0x28,
+//     int16: 0x29,
+//     enum8: 0x30,
+// };
+//const defaultReporting = { min: 0, max: 300, change: 1 };
 
 const definition = {
     zigbeeModel: ['galileo.sensor'],
@@ -10,32 +19,28 @@ const definition = {
     vendor: 'Galileo',
     description: 'Galileo generic sensor',
     extend: [
-        identify(), 
-        onOff({"powerOnBehavior":false}),
-        // numeric({
-        //     name: 'analog_value',
-        //     unit: 'analog value',
-        //     cluster: 'genAnalogValue',
-        //     attribute: 'presentValue',
-        //     description: 'analog value',
-        //     access: 'STATE_GET',
-        //     reporting: {min: '5_SECONDS', max: '10_SECONDS', change: 1},
-        //     //reporting: defaultReporting, // lato sensore deve essere implementato il comando
-        // }),
+        identify(),
+        onOff({ "powerOnBehavior": false }),
+        temperature(),
         numeric({
-            name: 'temperature',
-            cluster: 'msTemperatureMeasurement',
-            attribute: 'measuredValue',
-            reporting: {min: 0, max: 300, change: 1},
-            description: 'Measured temperature value',
-            unit: '°C',
-            scale: 100,
+            name: 'custom value',
+            cluster: 'genAnalogInput',
+            attribute: 'presentValue',
+            //reporting: { change: 5 },
+            description: 'custom value',
             access: 'STATE_GET',
         }),
+        // numeric({
+            //     name: 'xyz',
+        //     cluster: '65522', // important
+        //     attribute: { ID: 0x0, type: dataType.uint16 },
+        //     description: 'custom value',
+        // }),
         // numeric({
         //     name: 'report_delay',
         //     unit: 'min',
         //     valueMin: 1,
+        //     valueStep: 0.1,
         //     valueMax: 240,
         //     cluster: 'genPowerCfg',
         //     attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
@@ -46,3 +51,46 @@ const definition = {
 };
 
 module.exports = definition;
+
+
+// // Add the lines below
+// const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+// const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+// const exposes = require('zigbee-herdsman-converters/lib/exposes');
+// const reporting = require('zigbee-herdsman-converters/lib/reporting');
+// const extend = require('zigbee-herdsman-converters/lib/extend');
+// const ota = require('zigbee-herdsman-converters/lib/ota');
+// const tuya = require('zigbee-herdsman-converters/lib/tuya');
+// const { } = require('zigbee-herdsman-converters/lib/tuya');
+// const utils = require('zigbee-herdsman-converters/lib/utils');
+// const globalStore = require('zigbee-herdsman-converters/lib/store');
+// const e = exposes.presets;
+// const ea = exposes.access;
+
+// const fLocal = {
+//     windSpeed: {
+//         cluster: '65534', //This part is important
+//         type: ['readResponse', 'attributeReport'],
+//         convert: (model, msg, publish, options, meta) →> {
+//         if(msg.data.hasOwnProperty('1')) {
+//             const windSpeed = parseFloat(msg - data['1']);
+// return { I'windSpeed']: windSpeed };
+// 		}
+// 	},
+// };
+
+// const definition = {
+//     zigbeeModel: ['MetaWeather'],
+//     model: 'WeatherStation', // Update this with the real model of the device (written on the device itself or product page) 
+//     vendor: 'MetaImi', // Update this with the real vendor of the device (written on the device itself or product page) 
+//     description: 'Weather station by MetaImi', // Description of the device, copy from vendor site. (only used for documentation and startup logging)
+//     extend: [],
+//     fromZigbee: [fLocal.windSpeed, fz.temperature, fz.humidity],
+//     toZigbee: [],
+//     exposes: [
+//         e.temperature(), 
+//         e.humidity(), 
+//         exposes.enum('Wind Direction', ea.STATE, ['north', 'east', 'west']).withDescription('Wind direction'), e.numeric('windSpeed', ea.STATE).withLabel('Wind speed').withUnit('km/h').withDescription('Measured wind speed')],
+// };
+
+// module.exports = definition;
