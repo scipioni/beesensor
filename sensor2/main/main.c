@@ -5,7 +5,6 @@
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-// #include "driver/gpio.h"
 #include "esp_system.h"
 #include "iot_button.h"
 #include "esp_zigbee_core.h"
@@ -288,7 +287,7 @@ static void esp_zb_task(void *pvParameters)
 
 void update_attribute()
 {
-    while (1)
+    for (;;)
     {
 
         if (esp_zb_lock_acquire(portMAX_DELAY))
