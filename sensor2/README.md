@@ -1,6 +1,12 @@
 | Supported Targets | ESP32-H2 | ESP32-C6 |
 | ----------------- | -------- | -------- |
 
+
+Examples:
+- https://github.com/Xinyuan-LilyGO/T-ZigBee/tree/fc7602f6f3a269ffa234d0a6cb7846161f58c3f9/examples/sensor_demo
+- https://habr.com/ru/articles/759964/
+- https://github.com/Bobstin/AutomatedBrewery/tree/b292b6e3d0344bba9a9dc35f3571ffdb034a176e
+
 # Light Switch Example 
 
 This test code shows how to customized add / update attribute, add cluster and add endpoint to a device. This example also shows how to use varieties ZDO commands and ZCL commands, like binding, finding, read attribute, configure report attribute.

@@ -7,32 +7,6 @@ serial:
   port: /dev/ttyACM0
 advanced:
   pan_id: 6755
-  # network_key:
-  #   - 139
-  #   - 86
-  #   - 188
-  #   - 56
-  #   - 17
-  #   - 237
-  #   - 142
-  #   - 120
-  #   - 161
-  #   - 226
-  #   - 242
-  #   - 17
-  #   - 130
-  #   - 127
-  #   - 216
-  #   - 95
-  # ext_pan_id:
-  #   - 116
-  #   - 7
-  #   - 160
-  #   - 226
-  #   - 129
-  #   - 13
-  #   - 155
-  #   - 186
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
@@ -46,3 +20,4 @@ external_converters:
   - external/galileo-sensor.js
 permit_join: false
 log_level: debug
+availability: true

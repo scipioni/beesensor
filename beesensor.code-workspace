@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "sensor2"
+		},
+		{
+			"path": "zigbee2mqtt"
+		},
+		{
+			"path": "esp-zigbee-sdk"
+		}
+	],
+	"settings": {}
+}

@@ -19,8 +19,8 @@
 #define INSTALLCODE_POLICY_ENABLE false /* enable the install code policy for security */
 #define ED_AGING_TIMEOUT ESP_ZB_ED_AGING_TIMEOUT_64MIN
 #define ED_KEEP_ALIVE 3000                                               /* 3000 millisecond */
-#define HA_ESP_LIGHT_ENDPOINT 10                                         /* esp light bulb device endpoint, used to process light controlling commands */
-#define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_LIGHT_ENDPOINT
+#define HA_ESP_GALILEO_SENSOR_ENDPOINT 10                                         /* esp light bulb device endpoint, used to process light controlling commands */
+#define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_GALILEO_SENSOR_ENDPOINT
 #define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK /* Zigbee primary channel mask use in the example */
 
 #define ESP_ZB_ZED_CONFIG()                               \
@@ -73,4 +73,9 @@ const char *button_event_table[] = {
 
 // In the SDK, there is a special function to create custom clusters (not described in the documentation), but there is a restriction they should be the type of 0xFxxx other variants in the SDK prohibited.
 #define VALUE_CUSTOM_CLUSTER 0xFFF2 /* Custom cluster used because standard cluster not working */
-#define CO2_CUSTOM_CLUSTER              0xFFF2                           
+#define CO2_CUSTOM_CLUSTER              0xFFF2
+
+
+#define ESP_TEMP_SENSOR_UPDATE_INTERVAL (1)     /* Local sensor update interval (second) */
+#define ESP_TEMP_SENSOR_MIN_VALUE       (-10)   /* Local sensor min measured value (degree Celsius) */
+#define ESP_TEMP_SENSOR_MAX_VALUE       (80)    /* Local sensor max measured value (degree Celsius) */

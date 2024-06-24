@@ -17,8 +17,18 @@ bool button_state = false;
 bool connected = false;
 
 unsigned int led_time_ms = 500;
+float_t analog_value = 1.0;
+float_t temperature = 10.0;
+
+#define ARRAY_LENTH(arr) (sizeof(arr) / sizeof(arr[0]))
 
 static const char *TAG = "GALILEO_SENSOR";
+
+static int16_t zb_temperature_to_s16(float temp)
+{
+    return (int16_t)(temp * 100);
+}
+
 
 static esp_err_t deferred_driver_init(void)
 {
@@ -30,7 +40,6 @@ static void bdb_start_top_level_commissioning_cb(uint8_t mode_mask)
 {
     ESP_RETURN_ON_FALSE(esp_zb_bdb_start_top_level_commissioning(mode_mask) == ESP_OK, , TAG, "Failed to start Zigbee commissioning");
 }
-
 
 void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 {
@@ -103,7 +112,7 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                         message->info.status);
     ESP_LOGI(TAG, "Received message: endpoint(%d), cluster(0x%x), attribute(0x%x), data size(%d)", message->info.dst_endpoint, message->info.cluster,
              message->attribute.id, message->attribute.data.size);
-    if (message->info.dst_endpoint == HA_ESP_LIGHT_ENDPOINT)
+    if (message->info.dst_endpoint == HA_ESP_GALILEO_SENSOR_ENDPOINT)
     {
         if (message->info.cluster == ESP_ZB_ZCL_CLUSTER_ID_ON_OFF)
         {
@@ -159,7 +168,6 @@ static void reset_and_reboot(void *arg, void *data)
 //     }
 // }
 
-
 /* Manual reporting atribute to coordinator */
 // static void reportAttribute(uint8_t endpoint, uint16_t clusterID, uint16_t attributeID, void *value, uint8_t value_length)
 // {
@@ -179,7 +187,6 @@ static void reset_and_reboot(void *arg, void *data)
 //     esp_zb_zcl_report_attr_cmd_req(&cmd);
 // }
 
-
 static void button_event_cb(void *arg, void *data)
 {
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
@@ -193,18 +200,35 @@ static void button_event_cb(void *arg, void *data)
     //     ESP_LOGE(TAG, "Setting CO2_value attribute failed!");
     // }
 
-    // float_t analog_value = 999;
+    analog_value = analog_value + 1.1;
+    esp_zb_zcl_status_t status = esp_zb_zcl_set_attribute_val(
+        SENSOR_ENDPOINT,                    // DEVICE_ENDPOINT
+        ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE, // TARGET_CLUSTER
+        ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+        ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID, // TARGET_ATTRIBUTE
+        &analog_value,
+        false);
 
-    // esp_zb_zcl_status_t state_value = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, 0, &analog_value, false);
+    if (status != ESP_ZB_ZCL_STATUS_SUCCESS)
+    {
+        ESP_LOGE(TAG, "Set attribute failed: %x", status);
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Attribute value changed to: %f", analog_value);
+    }
 
-    // /* Check for error */
-    // if (state_value != ESP_ZB_ZCL_STATUS_SUCCESS)
-    // {
-    //     ESP_LOGE(TAG, "Setting analog_value attribute failed!");
-    // }
+    temperature = temperature + 1.1;
+    int16_t measured_value = zb_temperature_to_s16(temperature);
+    /* Update temperature sensor measured value */
+    esp_zb_lock_acquire(portMAX_DELAY);
+    esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT,
+        ESP_ZB_ZCL_CLUSTER_ID_TEMP_MEASUREMENT, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+        ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_VALUE_ID, &measured_value, false);
+    esp_zb_lock_release();
 
     /* CO2 Cluster is custom and we must report it manually*/
-    //reportAttribute(SENSOR_ENDPOINT, VALUE_CUSTOM_CLUSTER, 0, &analog_value, 2);
+    // reportAttribute(SENSOR_ENDPOINT, VALUE_CUSTOM_CLUSTER, 0, &analog_value, 2);
 }
 
 void button_init(uint32_t button_num)
@@ -272,53 +296,55 @@ void button_init(uint32_t button_num)
 
 // # define ESP_TX_ENDPOINT 11
 
-static void create_custom_endpoint() {
+// static void create_custom_endpoint() {
 
-    esp_zb_zcl_attr_location_info_t filter;
-    esp_zb_zcl_reporting_info_t *report;
+//     esp_zb_zcl_attr_location_info_t filter;
+//     esp_zb_zcl_reporting_info_t *report;
 
-    filter.attr_id=0; //CUSTOM_ON_OFF_CLUSTER_ATTR_STATE_ID;
-    filter.cluster_id=ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE;
-    filter.endpoint_id=SENSOR_ENDPOINT;
-    filter.cluster_role=ESP_ZB_ZCL_CLUSTER_SERVER_ROLE;
-    filter.manuf_code=ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC;
-    report=esp_zb_zcl_find_reporting_info(filter);
-    if(report!=NULL){
-        report->u.send_info.def_max_interval=0xFFFE;
-        report->u.send_info.def_min_interval=0x00;
-        report->u.send_info.max_interval=0xFFFE;
-        report->u.send_info.min_interval=0x00;
-        report->u.send_info.delta.u32=1;
-        if(esp_zb_zcl_update_reporting_info(report)!=ESP_OK) ESP_LOGE(TAG, "error conf update");
-    }else ESP_LOGE(TAG, "error filter");
+//     filter.attr_id=0; //CUSTOM_ON_OFF_CLUSTER_ATTR_STATE_ID;
+//     filter.cluster_id=ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE;
+//     filter.endpoint_id=SENSOR_ENDPOINT;
+//     filter.cluster_role=ESP_ZB_ZCL_CLUSTER_SERVER_ROLE;
+//     filter.manuf_code=ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC;
+//     report=esp_zb_zcl_find_reporting_info(filter);
+//     if(report!=NULL){
+//         report->u.send_info.def_max_interval=0xFFFE;
+//         report->u.send_info.def_min_interval=0x00;
+//         report->u.send_info.max_interval=0xFFFE;
+//         report->u.send_info.min_interval=0x00;
+//         report->u.send_info.delta.u32=1;
+//         if(esp_zb_zcl_update_reporting_info(report)!=ESP_OK) ESP_LOGE(TAG, "error conf update");
+//     }else ESP_LOGE(TAG, "error filter");
 
-//     /* Create customized package tx endpoint */
-//     esp_zb_package_cfg_t package_cfg = ESP_ZB_DEFAULT_CONFIGURATION_TOOL_CONFIG();
-//     esp_zb_ep_list_t *esp_zb_tx_ep = custom_package_ep_create(ESP_TX_ENDPOINT, &package_cfg);
+// //     /* Create customized package tx endpoint */
+// //     esp_zb_package_cfg_t package_cfg = ESP_ZB_DEFAULT_CONFIGURATION_TOOL_CONFIG();
+// //     esp_zb_ep_list_t *esp_zb_tx_ep = custom_package_ep_create(ESP_TX_ENDPOINT, &package_cfg);
 
-//     /* Register the device */
-//     esp_zb_device_register(esp_zb_tx_ep);
+// //     /* Register the device */
+// //     esp_zb_device_register(esp_zb_tx_ep);
 
-//     /* Config the reporting info  */
-//     esp_zb_zcl_reporting_info_t reporting_info = {
-//         .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
-//         .ep = ESP_TX_ENDPOINT,
-//         .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_OUTPUT,
-//         .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
-//         .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-//         .u.send_info.min_interval = 1,
-//         .u.send_info.max_interval = 0,
-//         .u.send_info.def_min_interval = 1,
-//         .u.send_info.def_max_interval = 0,
-//         .u.send_info.delta.u16 = 1,
-//         .attr_id = ESP_ZB_ZCL_ATTR_CUSTOM_CIE_EP, //ESP_ZB_ZCL_ATTR_CUSTOM_PKG_VALUE_ID,
-//         .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
-//     };
+// //     /* Config the reporting info  */
+// //     esp_zb_zcl_reporting_info_t reporting_info = {
+// //         .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
+// //         .ep = ESP_TX_ENDPOINT,
+// //         .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_OUTPUT,
+// //         .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+// //         .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+// //         .u.send_info.min_interval = 1,
+// //         .u.send_info.max_interval = 0,
+// //         .u.send_info.def_min_interval = 1,
+// //         .u.send_info.def_max_interval = 0,
+// //         .u.send_info.delta.u16 = 1,
+// //         .attr_id = ESP_ZB_ZCL_ATTR_CUSTOM_CIE_EP, //ESP_ZB_ZCL_ATTR_CUSTOM_PKG_VALUE_ID,
+// //         .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
+// //     };
 
-//     esp_zb_zcl_update_reporting_info(&reporting_info);
-}
+// //     esp_zb_zcl_update_reporting_info(&reporting_info);
+// }
 
 /* -------------- */
+
+
 
 static void esp_zb_task(void *pvParameters)
 {
@@ -353,29 +379,29 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_SCENE_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_SCENE_VALID_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_SCENE_COUNT_ID, &null_values);
-    
+
     // create cluster lists for this endpoint
-    esp_zb_cluster_list_t *esp_zb_cluster_list = esp_zb_zcl_cluster_list_create();
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_basic_cluster(esp_zb_cluster_list, basic_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_identify_cluster(esp_zb_cluster_list, esp_zb_identify_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_groups_cluster(esp_zb_cluster_list, esp_zb_groups_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_scenes_cluster(esp_zb_cluster_list, esp_zb_scenes_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_cluster_list_t *cluster_list = esp_zb_zcl_cluster_list_create();
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_basic_cluster(cluster_list, basic_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_identify_cluster(cluster_list, esp_zb_identify_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_groups_cluster(cluster_list, esp_zb_groups_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_scenes_cluster(cluster_list, esp_zb_scenes_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
     // on-off cluster create with standard cluster config
     esp_zb_on_off_cluster_cfg_t on_off_cfg;
     on_off_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
     esp_zb_attribute_list_t *esp_zb_on_off_cluster = esp_zb_on_off_cluster_create(&on_off_cfg);
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(esp_zb_cluster_list, esp_zb_on_off_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list, esp_zb_on_off_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
     // Analog input cluster (Currently used for flow sensor - should be replaced with flow measurement when ESP supports it)
     // from https://github.com/Bobstin/AutomatedBrewery/blob/b292b6e3d0344bba9a9dc35f3571ffdb034a176e/ESPZigbeeDemo/zigbee_cluster_demo/main/esp_zb_light.c
-    //esp_zb_analog_input_cluster_cfg_t analog_input_cfg;
+    // esp_zb_analog_input_cluster_cfg_t analog_input_cfg;
     esp_zb_analog_value_cluster_cfg_t analog_value_cfg;
     analog_value_cfg.out_of_service = 0;
     analog_value_cfg.present_value = 0;
-    analog_value_cfg.status_flags = ESP_ZB_ZCL_ANALOG_VALUE_STATUS_FLAGS_DEFAULT_VALUE; //ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
+    analog_value_cfg.status_flags = ESP_ZB_ZCL_ANALOG_VALUE_STATUS_FLAGS_DEFAULT_VALUE; // ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
     esp_zb_attribute_list_t *esp_zb_analog_value_cluster = esp_zb_analog_value_cluster_create(&analog_value_cfg);
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_value_cluster(esp_zb_cluster_list, esp_zb_analog_value_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_value_cluster(cluster_list, esp_zb_analog_value_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
     /* Custom cluster for CO2 ( standart cluster not working), solution only for HOMEd */
     // https://habr.com/ru/articles/759964/
@@ -386,21 +412,86 @@ static void esp_zb_task(void *pvParameters)
 
     esp_zb_attribute_list_t *custom_value_attributes_list = esp_zb_zcl_attr_list_create(VALUE_CUSTOM_CLUSTER);
     esp_zb_custom_cluster_add_custom_attr(custom_value_attributes_list, attr_id, attr_type, attr_access, &null_values);
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_custom_cluster(esp_zb_cluster_list, custom_value_attributes_list, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_custom_cluster(cluster_list, custom_value_attributes_list, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+
+    /* Create customized temperature sensor endpoint */
+    esp_zb_temperature_sensor_cfg_t sensor_cfg = ESP_ZB_DEFAULT_TEMPERATURE_SENSOR_CONFIG();
+    sensor_cfg.temp_meas_cfg.min_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MIN_VALUE);
+    sensor_cfg.temp_meas_cfg.max_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MAX_VALUE);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_temperature_meas_cluster(cluster_list, esp_zb_temperature_meas_cluster_create(&(sensor_cfg.temp_meas_cfg)), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
     esp_zb_endpoint_config_t EPC = {
-        .endpoint = HA_ESP_LIGHT_ENDPOINT,
+        .endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-        .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, //ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
+        .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
         .app_device_version = 1,
     };
-
     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     // add created endpoint (cluster_list) to endpoint list
-    esp_zb_ep_list_add_ep(esp_zb_ep_list, esp_zb_cluster_list, EPC);
+    esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_device_register(esp_zb_ep_list);
 
-    //create_custom_endpoint();
+    // create_custom_endpoint();
+
+
+    // esp_zb_zcl_reporting_info_t reporting_info = {
+    //     .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_CLI,
+    //     .ep = HA_ESP_GALILEO_SENSOR_ENDPOINT,
+    //     .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE,
+    //     .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+    //     .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+    //     .u.send_info.min_interval = 5,
+    //     .u.send_info.max_interval = 10,
+    //     //.u.send_info.def_min_interval = 1,
+    //     //.u.send_info.def_max_interval = 0,
+    //     //.u.send_info.delta.u32 = 1,
+    //     .attr_id = ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID, // ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_VALUE_ID,
+    //     .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
+    // };
+    // esp_zb_zcl_update_reporting_info(&reporting_info);
+
+    // esp_zb_zcl_config_report_cmd_t report_cmd;
+    // report_cmd.address_mode = ESP_ZB_APS_ADDR_MODE_DST_ADDR_ENDP_NOT_PRESENT;
+    // report_cmd.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
+    // report_cmd.clusterID = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE;
+
+    // int16_t report_change = 1; /* report on each 1 changes */
+    // esp_zb_zcl_config_report_record_t records[] = {
+    //     {
+    //         .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
+    //         .attributeID = ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID,
+    //         .attrType = ESP_ZB_ZCL_ATTR_TYPE_S16,
+    //         .min_interval = 0,
+    //         .max_interval = 10,
+    //         .reportable_change = &report_change,
+    //     },
+    // };
+    // report_cmd.record_number = ARRAY_LENTH(records);
+    // report_cmd.record_field = records;
+
+    // esp_zb_lock_acquire(portMAX_DELAY);
+    // esp_zb_zcl_config_report_cmd_req(&report_cmd);
+    // esp_zb_lock_release();
+
+
+    /* Config the reporting info  */
+    // esp_zb_zcl_reporting_info_t reporting_info = {
+    //     .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
+    //     .ep = HA_ESP_GALILEO_SENSOR_ENDPOINT,
+    //     .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_TEMP_MEASUREMENT,
+    //     .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+    //     .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+    //     .u.send_info.min_interval = 1,
+    //     .u.send_info.max_interval = 0,
+    //     .u.send_info.def_min_interval = 1,
+    //     .u.send_info.def_max_interval = 0,
+    //     .u.send_info.delta.u16 = 100,
+    //     .attr_id = ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_VALUE_ID,
+    //     .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
+    // };
+
+    // esp_zb_zcl_update_reporting_info(&reporting_info);
+
 
     esp_zb_core_action_handler_register(zb_action_handler);
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
@@ -441,7 +532,7 @@ void update_attribute()
             // }
 
             /* Write new analog value */
-            //esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID, &analog_value, false);
+            // esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID, &analog_value, false);
 
             // /* Check for error */
             // if (state_analog != ESP_ZB_ZCL_STATUS_SUCCESS)
