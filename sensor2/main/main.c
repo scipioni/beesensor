@@ -5,17 +5,17 @@
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/gpio.h"
+// #include "driver/gpio.h"
 #include "esp_system.h"
 #include "iot_button.h"
 #include "esp_zigbee_core.h"
 #include "ha/esp_zigbee_ha_standard.h"
 #include "temp_sensor_driver.h"
+#include "led_board_driver.h"
 
 bool button_state = false;
 bool connected = false;
 
-unsigned int led_time_ms = 500;
 float_t analog_value = 1.0;
 float_t temperature = 10.0;
 
@@ -47,6 +47,8 @@ static esp_err_t deferred_driver_init(void)
         TEMPERATURE_SENSOR_CONFIG_DEFAULT(ESP_TEMP_SENSOR_MIN_VALUE, ESP_TEMP_SENSOR_MAX_VALUE);
     ESP_RETURN_ON_ERROR(temp_sensor_driver_init(&temp_sensor_config, ESP_TEMP_SENSOR_UPDATE_INTERVAL, esp_app_temp_sensor_handler), TAG,
                         "Failed to initialize temperature sensor");
+    ESP_RETURN_ON_ERROR(led_board_driver_init(LED), TAG,
+                        "Failed to initialize LED board");
     return ESP_OK;
 }
 
@@ -136,11 +138,11 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 ESP_LOGI(TAG, "Light sets to %s", light_state ? "On" : "Off");
                 if (light_state)
                 {
-                    led_time_ms = 100;
+                    led_on();
                 }
                 else
                 {
-                    led_time_ms = 500;
+                    led_off();
                 }
             }
         }
@@ -169,7 +171,7 @@ static void reset_and_reboot(void *arg, void *data)
 {
     // ESP_EARLY_LOGI
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
-    led_time_ms = 50; // led intermittente per 2 secondi
+    led_on();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     esp_zb_factory_reset();
     esp_restart(); // poi reboot
@@ -306,19 +308,6 @@ void update_attribute()
     }
 }
 
-static void led_task(void *pvParameters)
-{
-    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
-
-    while (1)
-    {
-        gpio_set_level(LED, 0);
-        vTaskDelay(led_time_ms / portTICK_PERIOD_MS);
-        gpio_set_level(LED, 1);
-        vTaskDelay(led_time_ms / portTICK_PERIOD_MS);
-    }
-}
-
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -328,7 +317,7 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
     button_init(BOOT_BUTTON_NUM);
-    xTaskCreate(led_task, "LED", 4096, NULL, 5, NULL);
+    // xTaskCreate(led_task, "LED", 4096, NULL, 5, NULL);
     xTaskCreate(update_attribute, "update_attribute", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }
