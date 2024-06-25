@@ -8,6 +8,7 @@
 #include "esp_system.h"
 #include "iot_button.h"
 #include "esp_zigbee_core.h"
+#include "esp_ieee802154.h"
 #include "ha/esp_zigbee_ha_standard.h"
 #include "temp_sensor_driver.h"
 #include "led_board_driver.h"
@@ -15,7 +16,7 @@
 bool button_state = false;
 bool connected = false;
 
-float_t analog_value = 1.0;
+float_t counter = 1.0;
 float_t temperature = 10.0;
 
 #define ARRAY_LENTH(arr) (sizeof(arr) / sizeof(arr[0]))
@@ -287,15 +288,17 @@ static void esp_zb_task(void *pvParameters)
 
 void update_attribute()
 {
+    int8_t rssi;
     for (;;)
     {
 
         if (esp_zb_lock_acquire(portMAX_DELAY))
         {
-            analog_value = analog_value + 1.1;
-            ESP_LOGI(TAG, "set analog_value to %f", analog_value);
+            counter = counter + 1.0;
+            rssi = esp_ieee802154_get_recent_rssi();
+            ESP_LOGI(TAG, "rssi=%i counter=%f", rssi, counter);
 
-            esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID, &analog_value, false);
+            esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID, &counter, false);
             esp_zb_lock_release();
             if (state_analog != ESP_ZB_ZCL_STATUS_SUCCESS)
             {
