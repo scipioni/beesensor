@@ -5,6 +5,6 @@ managed_components
 .env
 runtime
 sdkconfig.old
-.vscode/
+.vscode
 sdkconfig
 .task
