@@ -23,11 +23,11 @@ const definition = {
         onOff({ "powerOnBehavior": false }),
         temperature(),
         numeric({
-            name: 'custom value',
+            name: 'counter value',
             cluster: 'genAnalogInput',
             attribute: 'presentValue',
-            //reporting: { change: 5 },
-            description: 'custom value',
+            reporting: { min: 0, max: 10, change: 5 },
+            description: 'counter that increment in 5 seconds',
             access: 'STATE_GET',
         }),
         // numeric({

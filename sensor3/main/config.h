@@ -72,10 +72,10 @@ const char *button_event_table[] = {
 #define LED 15
 
 // In the SDK, there is a special function to create custom clusters (not described in the documentation), but there is a restriction they should be the type of 0xFxxx other variants in the SDK prohibited.
-#define VALUE_CUSTOM_CLUSTER 0xFFF2 /* Custom cluster used because standard cluster not working */
+#define CLUSTER_ID_CUSTOM 0xFFF2 /* Custom cluster used because standard cluster not working */
 #define CO2_CUSTOM_CLUSTER              0xFFF2
 
 
-#define ESP_TEMP_SENSOR_UPDATE_INTERVAL (1)     /* Local sensor update interval (second) */
+#define ESP_TEMP_SENSOR_UPDATE_INTERVAL (10)     /* Local sensor update interval (second) */
 #define ESP_TEMP_SENSOR_MIN_VALUE       (-10)   /* Local sensor min measured value (degree Celsius) */
 #define ESP_TEMP_SENSOR_MAX_VALUE       (80)    /* Local sensor max measured value (degree Celsius) */

@@ -6,6 +6,8 @@ Examples:
 - https://github.com/Xinyuan-LilyGO/T-ZigBee/tree/fc7602f6f3a269ffa234d0a6cb7846161f58c3f9/examples/sensor_demo
 - https://habr.com/ru/articles/759964/
 - https://github.com/Bobstin/AutomatedBrewery/tree/b292b6e3d0344bba9a9dc35f3571ffdb034a176e
+- https://medium.com/@omaslyuchenko/hello-zigbee-world-part-18-custom-zigbee2mqtt-external-converter-1a666db52d44
+- https://github.com/nomis/candle-dribbler
 
 # Light Switch Example 
 
