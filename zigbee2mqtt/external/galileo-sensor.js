@@ -1,6 +1,6 @@
 // from https://github.com/Koenkk/zigbee-herdsman-converters/blob/cbaa6f45dcb61822ed7a44493ec304b386aaf08a/src/devices/efekta.ts#L54
 
-const { identify, onOff, numeric, temperature } = require('zigbee-herdsman-converters/lib/modernExtend');
+const { identify, onOff, numeric, temperature, commandsOnOff } = require('zigbee-herdsman-converters/lib/modernExtend');
 //const reporting = require('zigbee-herdsman-converters/lib/reporting');
 
 // const dataType = {
@@ -21,6 +21,7 @@ const definition = {
     extend: [
         identify(),
         onOff({ "powerOnBehavior": false }),
+        commandsOnOff({commands: ['toggle'], bind: false}),
         temperature(),
         numeric({
             name: 'counter value',

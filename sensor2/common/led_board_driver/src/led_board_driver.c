@@ -11,28 +11,49 @@
 // /* call back function pointer */
 // static esp_temp_sensor_callback_t func_ptr;
 // /* update interval in seconds */
+
+#define SLOWTIME 800
 static uint16_t gpio_pin = 15;
-static uint16_t led_time_ms = 500;
+// static uint16_t led_time_ms = 500;
+static uint16_t led_time_off_ms = SLOWTIME;
+static uint16_t led_time_on_ms = SLOWTIME;
 
 static const char *TAG = "ESP_LED_DRIVER";
 
 static void led_update(void *arg)
 {
+    led_blink_slow();
     for (;;)
     {
-        gpio_set_level(gpio_pin, 0);
-        vTaskDelay(led_time_ms / portTICK_PERIOD_MS);
         gpio_set_level(gpio_pin, 1);
-        vTaskDelay(led_time_ms / portTICK_PERIOD_MS);
+        vTaskDelay(led_time_on_ms / portTICK_PERIOD_MS);
+        gpio_set_level(gpio_pin, 0);
+        vTaskDelay(led_time_off_ms / portTICK_PERIOD_MS);
     }
 }
 
-void led_on() {
-    led_time_ms = 100;
+void led_on()
+{
+    led_time_on_ms = SLOWTIME;
+    led_time_off_ms = 0;
 }
 
-void led_off() {
-    led_time_ms = 500;
+void led_off()
+{
+    led_time_on_ms = 0;
+    led_time_off_ms = SLOWTIME;
+}
+
+void led_blink_fast()
+{
+    led_time_on_ms = 100;
+    led_time_off_ms = 100;
+}
+
+void led_blink_slow()
+{
+    led_time_on_ms = SLOWTIME;
+    led_time_off_ms = SLOWTIME;
 }
 
 // static esp_err_t _init()

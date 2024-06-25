@@ -181,7 +181,38 @@ static void button_event_cb(void *arg, void *data)
 {
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
 
-    temperature = temperature + 1.1;
+    //temperature = temperature + 1.1;
+}
+
+void broadcast_ping(void *pvParameters)
+{
+    ESP_LOGI(TAG, "broadcast ping start");
+    esp_zb_zcl_on_off_cmd_t cmd_req;
+
+    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = 0xFFFF; // Broadcast address
+    cmd_req.zcl_basic_cmd.dst_endpoint = 255; // Broadcast endpoint
+    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
+    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
+    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+    led_off();
+    for (int i=0; i<10; i++)
+    {
+        if (esp_zb_lock_acquire(portMAX_DELAY))
+        {
+            esp_zb_zcl_on_off_cmd_req(&cmd_req);
+            esp_zb_lock_release();
+            //ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
+        }
+        vTaskDelay(250 / portTICK_PERIOD_MS);
+    }
+    ESP_LOGI(TAG, "broadcast ping stop");
+    led_blink_slow();
+    vTaskDelete(NULL);
+}
+
+void broadcast_ping_task(void *arg, void *data) 
+{
+    xTaskCreate(broadcast_ping, "broacast_ping", 4096, NULL, 1, NULL);
 }
 
 void button_init(uint32_t button_num)
@@ -199,7 +230,7 @@ void button_init(uint32_t button_num)
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_UP, button_event_cb, (void *)BUTTON_PRESS_UP);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT, button_event_cb, (void *)BUTTON_PRESS_REPEAT);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT_DONE, button_event_cb, (void *)BUTTON_PRESS_REPEAT_DONE);
-    // err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, button_event_cb, (void *)BUTTON_DOUBLE_CLICK);
+    err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, broadcast_ping_task, (void *)BUTTON_DOUBLE_CLICK);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, button_event_cb, (void *)BUTTON_LONG_PRESS_START);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_HOLD, button_event_cb, (void *)BUTTON_LONG_PRESS_HOLD);
     err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_UP, reset_and_reboot, (void *)BUTTON_LONG_PRESS_UP);
