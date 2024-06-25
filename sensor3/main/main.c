@@ -18,6 +18,7 @@
 
 bool button_state = false;
 bool connected = false;
+bool test_network = false;
 
 float_t counter = 1.0;
 float_t temperature = 10.0;
@@ -202,18 +203,8 @@ light_bulb_device_params_t on_off_light = {
 
 static void button_event_cb_double_clk(void *arg, void *data)
 {
+    test_network = !test_network;
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
-
-    esp_zb_zcl_on_off_cmd_t cmd_req;
-    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
-    cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
-    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
-    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
-    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
-    esp_zb_lock_acquire(portMAX_DELAY);
-    esp_zb_zcl_on_off_cmd_req(&cmd_req);
-    esp_zb_lock_release();
-    ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
 }
 
 void button_init(uint32_t button_num)
@@ -342,6 +333,24 @@ void update_attribute()
     }
 }
 
+static void double_click_cicle()
+{
+    esp_zb_zcl_on_off_cmd_t cmd_req;
+    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
+    cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
+    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
+    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
+    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+    for(;;) {
+        if(test_network && esp_zb_lock_acquire(portMAX_DELAY)){
+            esp_zb_zcl_on_off_cmd_req(&cmd_req);
+            esp_zb_lock_release();
+            ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
+        }
+        vTaskDelay(400 / portTICK_PERIOD_MS);
+    }
+}
+
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -353,4 +362,5 @@ void app_main(void)
     button_init(BOOT_BUTTON_NUM);
     xTaskCreate(update_attribute, "update_attribute", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
+    xTaskCreate(double_click_cicle, "double_click_cicle", 4096, NULL, 4, NULL);
 }
