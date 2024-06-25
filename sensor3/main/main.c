@@ -15,6 +15,8 @@
 #include "esp_err.h"
 #include "string.h"
 #include "zcl/esp_zigbee_zcl_common.h"
+#include "esp_zb_light.h"
+#include "driver/gpio.h"
 
 bool button_state = false;
 bool connected = false;
@@ -148,6 +150,8 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 {
                     led_off();
                 }
+                // gpio_set_level(BLINK_GPIO, light_state);
+                // light_driver_set_power(light_state);
             }
         }
     }
@@ -301,6 +305,11 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_device_register(esp_zb_ep_list);
+
+    // create customized light endpoint
+    // esp_zb_on_off_light_cfg_t light_cfg = ESP_ZB_DEFAULT_ON_OFF_LIGHT_CONFIG();
+    // esp_zb_ep_list_t *esp_zb_on_off_light_ep = esp_zb_on_off_light_ep_create(HA_ESP_LIGHT_ENDPOINT, &light_cfg);
+    // esp_zb_device_register(esp_zb_on_off_light_ep);
 
     esp_zb_core_action_handler_register(zb_action_handler);
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
