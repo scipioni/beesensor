@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "esp-zigbee-sdk"
+		},
+		{
+			"path": "continuous_read"
 		}
 	],
 	"settings": {}
