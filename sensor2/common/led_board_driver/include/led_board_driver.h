@@ -14,6 +14,7 @@ extern "C"
     void led_off();
     void led_blink_fast();
     void led_blink_slow();
+    void led_blink_and_off();
 
 #ifdef __cplusplus
 } // extern "C"

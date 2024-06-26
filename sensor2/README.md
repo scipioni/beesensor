@@ -50,6 +50,29 @@ Before project configuration and build, make sure to set the correct chip target
 task target
 ```
 
+check visual studio code "compileCommands" cpp settings in .vscode/c_cpp_properties.json
+```
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}
+
+```
+
+
 ## Erase the NVRAM 
 
 Before flash it to the board, it is recommended to erase NVRAM if user doesn't want to keep the previous examples or other projects stored info 

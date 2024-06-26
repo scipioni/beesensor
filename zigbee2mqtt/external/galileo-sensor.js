@@ -24,11 +24,12 @@ const definition = {
         commandsOnOff({commands: ['toggle'], bind: false}),
         temperature(),
         numeric({
-            name: 'counter value',
+            name: 'battery voltage',
             cluster: 'genAnalogInput',
+            unit: 'mV',
             attribute: 'presentValue',
             reporting: { min: 0, max: 10, change: 5 },
-            description: 'counter that increment in 5 seconds',
+            description: 'battery voltage',
             access: 'STATE_GET',
         }),
         // numeric({
