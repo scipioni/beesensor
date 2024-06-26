@@ -17,6 +17,10 @@
 #include "zcl/esp_zigbee_zcl_common.h"
 #include "esp_zb_light.h"
 #include "driver/gpio.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+#include "esp_adc/adc_oneshot.h"
+#include <stdio.h>
 
 bool button_state = false;
 bool connected = false;
@@ -26,6 +30,15 @@ float_t counter = 1.0;
 float_t temperature = 10.0;
 
 #define ARRAY_LENTH(arr) (sizeof(arr) / sizeof(arr[0]))
+
+// ADC config
+adc_oneshot_unit_handle_t adc1_handle;
+adc_oneshot_unit_init_cfg_t init_config1 = {
+    .unit_id = ADC_UNIT_1,
+};
+ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+#define BATTERY_ADC_CHANNEL ADC1_CH0 // GPIO 0
+#define ADC_ATTEN ADC_ATTEN_DB_12 // 12 db attenuation
 
 static const char *TAG = "GALILEO_SENSOR";
 
@@ -190,6 +203,27 @@ static void button_event_cb(void *arg, void *data)
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
 
     temperature = temperature + 1.1;
+
+    // gpio_num_t pin_batt = GPIO_NUM_0;
+    // int value = gpio_get_level(pin_batt);
+    // if(value == 0)
+    // {
+    //     printf("0");
+    // }
+
+    // ESP_LOGI(TAG, "calibration scheme version is %s", "Curve Fitting");
+    // adc_cali_curve_fitting_config_t cali_config = {
+    //     .unit_id = unit,
+    //     .atten = atten,
+    //     .bitwidth = ADC_BITWIDTH_DEFAULT,
+    // };
+    // ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_config, &handle));
+
+    // ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc_cali_handle, adc_raw[0][0], &voltage[0][0]));
+    // ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, voltage[0][0]);
+    // adc1_get_raw()
+
+    // printf(esp_err_t adc_cali_check_scheme(adc_cali_scheme_ver_t *scheme_mask));
 }
 
 typedef struct light_bulb_device_params_s {
