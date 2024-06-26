@@ -12,9 +12,15 @@
 #include "ha/esp_zigbee_ha_standard.h"
 #include "temp_sensor_driver.h"
 #include "led_board_driver.h"
+#include "esp_err.h"
+#include "string.h"
+#include "zcl/esp_zigbee_zcl_common.h"
+#include "esp_zb_light.h"
+#include "driver/gpio.h"
 
 bool button_state = false;
 bool connected = false;
+bool test_network = false;
 
 float_t counter = 1.0;
 float_t temperature = 10.0;
@@ -144,6 +150,8 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 {
                     led_off();
                 }
+                // gpio_set_level(BLINK_GPIO, light_state);
+                // light_driver_set_power(light_state);
             }
         }
     }
@@ -184,6 +192,25 @@ static void button_event_cb(void *arg, void *data)
     temperature = temperature + 1.1;
 }
 
+typedef struct light_bulb_device_params_s {
+    esp_zb_ieee_addr_t ieee_addr;
+    uint8_t endpoint;
+    uint16_t short_addr;
+    bool is_broadcast;
+} light_bulb_device_params_t;
+
+light_bulb_device_params_t on_off_light = {
+    .short_addr = 0xFFFF,  // Broadcast address
+    .endpoint = 255,       // Broadcast endpoint
+    .is_broadcast = true
+};
+
+static void button_event_cb_double_clk(void *arg, void *data)
+{
+    test_network = !test_network;
+    ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
+}
+
 void button_init(uint32_t button_num)
 {
     button_config_t btn_cfg = {
@@ -199,7 +226,7 @@ void button_init(uint32_t button_num)
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_UP, button_event_cb, (void *)BUTTON_PRESS_UP);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT, button_event_cb, (void *)BUTTON_PRESS_REPEAT);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT_DONE, button_event_cb, (void *)BUTTON_PRESS_REPEAT_DONE);
-    // err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, button_event_cb, (void *)BUTTON_DOUBLE_CLICK);
+    err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, button_event_cb_double_clk, (void *)BUTTON_DOUBLE_CLICK);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, button_event_cb, (void *)BUTTON_LONG_PRESS_START);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_HOLD, button_event_cb, (void *)BUTTON_LONG_PRESS_HOLD);
     err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_UP, reset_and_reboot, (void *)BUTTON_LONG_PRESS_UP);
@@ -279,6 +306,11 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_device_register(esp_zb_ep_list);
 
+    // create customized light endpoint
+    // esp_zb_on_off_light_cfg_t light_cfg = ESP_ZB_DEFAULT_ON_OFF_LIGHT_CONFIG();
+    // esp_zb_ep_list_t *esp_zb_on_off_light_ep = esp_zb_on_off_light_ep_create(HA_ESP_LIGHT_ENDPOINT, &light_cfg);
+    // esp_zb_device_register(esp_zb_on_off_light_ep);
+
     esp_zb_core_action_handler_register(zb_action_handler);
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
 
@@ -310,6 +342,24 @@ void update_attribute()
     }
 }
 
+static void double_click_cicle()
+{
+    esp_zb_zcl_on_off_cmd_t cmd_req;
+    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
+    cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
+    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
+    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
+    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+    for(;;) {
+        if(test_network && esp_zb_lock_acquire(portMAX_DELAY)){
+            esp_zb_zcl_on_off_cmd_req(&cmd_req);
+            esp_zb_lock_release();
+            ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
+        }
+        vTaskDelay(400 / portTICK_PERIOD_MS);
+    }
+}
+
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -321,4 +371,5 @@ void app_main(void)
     button_init(BOOT_BUTTON_NUM);
     xTaskCreate(update_attribute, "update_attribute", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
+    xTaskCreate(double_click_cicle, "double_click_cicle", 4096, NULL, 4, NULL);
 }

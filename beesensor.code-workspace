@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "continuous_read"
+		},
+		{
+			"path": "sensor3"
 		}
 	],
 	"settings": {}
