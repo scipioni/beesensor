@@ -10,9 +10,6 @@
 			"path": "esp-zigbee-sdk"
 		},
 		{
-			"path": "continuous_read"
-		},
-		{
 			"path": "sensor3"
 		}
 	],

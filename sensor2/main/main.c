@@ -10,13 +10,14 @@
 #include "esp_zigbee_core.h"
 #include "esp_ieee802154.h"
 #include "ha/esp_zigbee_ha_standard.h"
+#include "esp_sleep.h"
 
 #include "temp_sensor_driver.h"
 #include "led_board_driver.h"
 #include "battery_sensor.h"
 
-bool button_state = false;
 bool connected = false;
+const int wakeup_time_sec = 600;
 
 static const char *TAG = "GALILEO_SENSOR";
 float_t counter = 1.0;
@@ -172,8 +173,9 @@ static void button_event_cb(void *arg, void *data)
 {
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
     led_blink_and_off();
-
-    // temperature = temperature + 1.1;
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+    esp_deep_sleep_start();
 }
 
 void broadcast_ping(void *pvParameters)
