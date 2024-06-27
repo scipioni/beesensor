@@ -154,7 +154,7 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
     case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
         break;
     default:
-        ESP_LOGW(TAG, "Receive Zigbee action(0x%x) callback", callback_id);
+        ESP_LOGW(TAG, "Receive Zigbee action(0x%x) default callback", callback_id);
         break;
     }
     return ret;
@@ -165,6 +165,7 @@ static void reset_and_reboot(void *arg, void *data)
     // ESP_EARLY_LOGI
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
     led_blink_and_off();
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
     esp_zb_factory_reset();
     esp_restart(); // poi reboot
 }
@@ -197,7 +198,7 @@ void broadcast_ping(void *pvParameters)
             esp_zb_lock_release();
             // ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
         }
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     ESP_LOGI(TAG, "broadcast ping stop");
     // led_blink_slow();
@@ -291,14 +292,43 @@ static void esp_zb_task(void *pvParameters)
     sensor_cfg.temp_meas_cfg.max_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MAX_VALUE);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_temperature_meas_cluster(cluster_list, esp_zb_temperature_meas_cluster_create(&(sensor_cfg.temp_meas_cfg)), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
+    // endpoint 10
     esp_zb_endpoint_config_t EPC = {
         .endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
         .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
         .app_device_version = 1,
     };
+
+    /* endpoint 11 with 2 attributes */
+    esp_zb_cluster_list_t *cluster_list_vin = esp_zb_zcl_cluster_list_create();
+    esp_zb_analog_input_cluster_cfg_t vin_cfg;
+    vin_cfg.out_of_service = 0;
+    vin_cfg.present_value = 0;
+    vin_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
+    esp_zb_attribute_list_t *vin_cluster = esp_zb_analog_input_cluster_create(&vin_cfg);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_input_cluster(cluster_list_vin, vin_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    
+    /* endpoint 11 second attribute  */
+    // esp_zb_electrical_meas_cluster_cfg_t vin_type_cfg;
+    // vin_type_cfg.measured_type = 0;
+    // esp_zb_attribute_list_t *vin_type_cluster = esp_zb_electrical_meas_cluster_create(&vin_type_cfg);
+    // ESP_ERROR_CHECK(esp_zb_cluster_list_add_electrical_meas_cluster(cluster_list_vin, vin_type_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+        
+    esp_zb_endpoint_config_t EPC_VIN = {
+        .endpoint = HA_VIN_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
+        .app_device_version = 1,
+    };
+    /* ********  */
+
+
+
     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
+    esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_vin, EPC_VIN);
+
     esp_zb_device_register(esp_zb_ep_list);
 
     esp_zb_core_action_handler_register(zb_action_handler);
@@ -308,7 +338,7 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_main_loop_iteration();
 }
 
-void update_attribute()
+void update_attributes()
 {
     int8_t rssi;
     for (;;)
@@ -326,12 +356,24 @@ void update_attribute()
                 ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID,
                 &battery_voltage,
                 false);
-
-            esp_zb_lock_release();
             if (state_analog != ESP_ZB_ZCL_STATUS_SUCCESS)
             {
                 ESP_LOGE(TAG, "Setting analog attribute failed!");
             }
+
+            esp_zb_zcl_status_t state_analog_vin = esp_zb_zcl_set_attribute_val(
+                HA_VIN_ENDPOINT,
+                ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT,
+                ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+                ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID,
+                &vin_voltage,
+                false);
+
+            if (state_analog_vin != ESP_ZB_ZCL_STATUS_SUCCESS)
+            {
+                ESP_LOGE(TAG, "Setting analog attribute failed!");
+            }
+            esp_zb_lock_release();
         }
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
@@ -348,6 +390,6 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
     button_init(BOOT_BUTTON_NUM);
     battery_sensor_init();
-    xTaskCreate(update_attribute, "update_attribute", 4096, NULL, 5, NULL);
+    xTaskCreate(update_attributes, "update_attributes", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }

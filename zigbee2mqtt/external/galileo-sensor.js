@@ -1,7 +1,7 @@
 // from https://github.com/Koenkk/zigbee-herdsman-converters/blob/cbaa6f45dcb61822ed7a44493ec304b386aaf08a/src/devices/efekta.ts#L54
 // https://github.com/Koenkk/zigbee-herdsman-converters/blob/master/src/lib/modernExtend.ts
 
-const { identify, onOff, numeric, temperature, commandsOnOff } = require('zigbee-herdsman-converters/lib/modernExtend');
+const { identify, onOff, numeric, temperature, commandsOnOff, deviceEndpoints, electricityMeter } = require('zigbee-herdsman-converters/lib/modernExtend');
 //const reporting = require('zigbee-herdsman-converters/lib/reporting');
 
 // const dataType = {
@@ -20,10 +20,12 @@ const definition = {
     vendor: 'Galileo',
     description: 'Galileo generic sensor',
     extend: [
+        deviceEndpoints({"endpoints":{"10":10,"11":11}}),
         identify(),
         onOff({ "powerOnBehavior": false }),
         commandsOnOff({commands: ['toggle'], bind: false}),
         temperature(),
+        //electricityMeter({"cluster":"electrical"}),
         numeric({
             name: 'battery voltage',
             cluster: 'genAnalogInput',
@@ -32,6 +34,7 @@ const definition = {
             reporting: { min: 0, max: 10, change: 5 },
             description: 'battery voltage',
             access: 'STATE_GET',
+            endpointNames: ["10"],
         }),
         numeric({
             name: 'solar panel voltage',
@@ -41,7 +44,7 @@ const definition = {
             reporting: { min: 0, max: 10, change: 5 },
             description: 'solar panel voltage',
             access: 'STATE_GET',
-            endpointNames: ["ep2"]
+            endpointNames: ["11"],
         }),
         // numeric({
             //     name: 'xyz',
@@ -60,8 +63,9 @@ const definition = {
         //     description: 'Adjust Report Delay. Setting the time in minutes, by default 15 minutes',
         // }),
     ],
-    meta: {},
-    endpoint: (device) => { return {'ep1': 10, 'ep2': 11}; }, // https://github.com/Koenkk/zigbee2mqtt/blob/df0543d4b7d04578c5000a889090259d3abcb32f/lib/util/utils.ts#L30
+    //meta: {},
+    meta: {"multiEndpoint":true},
+    //endpoint: (device) => { return {'ep1': 10, 'ep2': 11}; }, // https://github.com/Koenkk/zigbee2mqtt/blob/df0543d4b7d04578c5000a889090259d3abcb32f/lib/util/utils.ts#L30
 };
 
 module.exports = definition;

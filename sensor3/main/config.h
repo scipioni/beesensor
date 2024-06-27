@@ -20,6 +20,8 @@
 #define ED_AGING_TIMEOUT ESP_ZB_ED_AGING_TIMEOUT_64MIN
 #define ED_KEEP_ALIVE 3000                                               /* 3000 millisecond */
 #define HA_ESP_GALILEO_SENSOR_ENDPOINT 10                                         /* esp light bulb device endpoint, used to process light controlling commands */
+#define HA_VIN_ENDPOINT 11     
+
 #define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_GALILEO_SENSOR_ENDPOINT
 #define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK /* Zigbee primary channel mask use in the example */
 
