@@ -33,6 +33,16 @@ const definition = {
             description: 'battery voltage',
             access: 'STATE_GET',
         }),
+        numeric({
+            name: 'solar panel voltage',
+            cluster: 'genAnalogInput',
+            unit: 'mV',
+            attribute: 'presentValue',
+            reporting: { min: 0, max: 10, change: 5 },
+            description: 'solar panel voltage',
+            access: 'STATE_GET',
+            endpointNames: ["ep2"]
+        }),
         // numeric({
             //     name: 'xyz',
         //     cluster: '65522', // important
@@ -51,6 +61,7 @@ const definition = {
         // }),
     ],
     meta: {},
+    endpoint: (device) => { return {'ep1': 10, 'ep2': 11}; }, // https://github.com/Koenkk/zigbee2mqtt/blob/df0543d4b7d04578c5000a889090259d3abcb32f/lib/util/utils.ts#L30
 };
 
 module.exports = definition;
