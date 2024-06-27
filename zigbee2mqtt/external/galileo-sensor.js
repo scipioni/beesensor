@@ -1,4 +1,5 @@
 // from https://github.com/Koenkk/zigbee-herdsman-converters/blob/cbaa6f45dcb61822ed7a44493ec304b386aaf08a/src/devices/efekta.ts#L54
+// https://github.com/Koenkk/zigbee-herdsman-converters/blob/master/src/lib/modernExtend.ts
 
 const { identify, onOff, numeric, temperature, commandsOnOff } = require('zigbee-herdsman-converters/lib/modernExtend');
 //const reporting = require('zigbee-herdsman-converters/lib/reporting');

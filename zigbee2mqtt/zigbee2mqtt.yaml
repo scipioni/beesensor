@@ -20,4 +20,8 @@ external_converters:
   - external/galileo-sensor.js
 permit_join: false
 log_level: debug
-availability: true
+availability:
+  active:
+    timeout: 1
+  passive:
+    timeout: 1

@@ -18,8 +18,8 @@
 #include "esp_adc/adc_cali_scheme.h"
 
 const static char *TAG = "BATTERY_SENSOR";
-static adc_oneshot_unit_handle_t adc1_handle;
-static adc_cali_handle_t adc1_cali_chan0_handle = NULL;
+static adc_oneshot_unit_handle_t adc1_handle, adc_vin_handle;
+static adc_cali_handle_t adc1_cali_chan0_handle = NULL, adc_cali_vin_handle;
 
 int adc_raw[2][10];
 int voltage[2][10];
