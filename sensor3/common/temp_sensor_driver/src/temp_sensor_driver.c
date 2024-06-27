@@ -37,6 +37,14 @@ static uint16_t interval = 1;
 
 static const char *TAG = "ESP_TEMP_SENSOR_DRIVER";
 
+
+
+int16_t zb_temperature_to_s16(float temp)
+{
+    return (int16_t)(temp * 100);
+}
+
+
 /**
  * @brief Tasks for updating the sensor value
  *

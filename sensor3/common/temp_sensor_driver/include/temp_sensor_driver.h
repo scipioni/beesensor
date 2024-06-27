@@ -20,6 +20,8 @@
 extern "C" {
 #endif
 
+int16_t zb_temperature_to_s16(float temp);
+
 /** Temperature sensor callback
  *
  * @param[in] temperature temperature value in degrees Celsius from sensor

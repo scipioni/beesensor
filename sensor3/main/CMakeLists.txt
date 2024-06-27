@@ -1,5 +1,5 @@
 idf_component_register(
     SRCS
-    "prova_main.c"
+    "main.c"
     INCLUDE_DIRS "."
 )

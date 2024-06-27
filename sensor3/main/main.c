@@ -10,44 +10,18 @@
 #include "esp_zigbee_core.h"
 #include "esp_ieee802154.h"
 #include "ha/esp_zigbee_ha_standard.h"
+#include "esp_sleep.h"
+
 #include "temp_sensor_driver.h"
 #include "led_board_driver.h"
-#include "esp_err.h"
-#include "string.h"
-#include "zcl/esp_zigbee_zcl_common.h"
-#include "esp_zb_light.h"
-#include "driver/gpio.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
-#include "esp_adc/adc_oneshot.h"
-#include <stdio.h>
+#include "battery_sensor.h"
 
-bool button_state = false;
 bool connected = false;
-bool test_network = false;
-
-float_t counter = 1.0;
-float_t temperature = 10.0;
-
-#define ARRAY_LENTH(arr) (sizeof(arr) / sizeof(arr[0]))
-
-// ADC config
-adc_oneshot_unit_handle_t adc1_handle;
-adc_oneshot_unit_init_cfg_t init_config1 = {
-    .unit_id = ADC_UNIT_1,
-};
-ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
-#define BATTERY_ADC_CHANNEL ADC1_CH0 // GPIO 0
-#define ADC_ATTEN ADC_ATTEN_DB_12 // 12 db attenuation
+const int wakeup_time_sec = 600;
 
 static const char *TAG = "GALILEO_SENSOR";
+float_t counter = 1.0;
 
-temperature_sensor_handle_t temp_sensor = NULL;
-
-static int16_t zb_temperature_to_s16(float temp)
-{
-    return (int16_t)(temp * 100);
-}
 
 static void esp_app_temp_sensor_handler(float temperature)
 {
@@ -163,8 +137,6 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 {
                     led_off();
                 }
-                // gpio_set_level(BLINK_GPIO, light_state);
-                // light_driver_set_power(light_state);
             }
         }
     }
@@ -192,8 +164,7 @@ static void reset_and_reboot(void *arg, void *data)
 {
     // ESP_EARLY_LOGI
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
-    led_on();
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    led_blink_and_off();
     esp_zb_factory_reset();
     esp_restart(); // poi reboot
 }
@@ -201,48 +172,41 @@ static void reset_and_reboot(void *arg, void *data)
 static void button_event_cb(void *arg, void *data)
 {
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
-
-    temperature = temperature + 1.1;
-
-    // gpio_num_t pin_batt = GPIO_NUM_0;
-    // int value = gpio_get_level(pin_batt);
-    // if(value == 0)
-    // {
-    //     printf("0");
-    // }
-
-    // ESP_LOGI(TAG, "calibration scheme version is %s", "Curve Fitting");
-    // adc_cali_curve_fitting_config_t cali_config = {
-    //     .unit_id = unit,
-    //     .atten = atten,
-    //     .bitwidth = ADC_BITWIDTH_DEFAULT,
-    // };
-    // ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&cali_config, &handle));
-
-    // ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc_cali_handle, adc_raw[0][0], &voltage[0][0]));
-    // ESP_LOGI(TAG, "ADC%d Channel[%d] Cali Voltage: %d mV", ADC_UNIT_1 + 1, EXAMPLE_ADC1_CHAN0, voltage[0][0]);
-    // adc1_get_raw()
-
-    // printf(esp_err_t adc_cali_check_scheme(adc_cali_scheme_ver_t *scheme_mask));
+    led_blink_and_off();
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+    esp_deep_sleep_start();
 }
 
-typedef struct light_bulb_device_params_s {
-    esp_zb_ieee_addr_t ieee_addr;
-    uint8_t endpoint;
-    uint16_t short_addr;
-    bool is_broadcast;
-} light_bulb_device_params_t;
-
-light_bulb_device_params_t on_off_light = {
-    .short_addr = 0xFFFF,  // Broadcast address
-    .endpoint = 255,       // Broadcast endpoint
-    .is_broadcast = true
-};
-
-static void button_event_cb_double_clk(void *arg, void *data)
+void broadcast_ping(void *pvParameters)
 {
-    test_network = !test_network;
-    ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
+    ESP_LOGI(TAG, "broadcast ping start");
+    esp_zb_zcl_on_off_cmd_t cmd_req;
+
+    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = 0xFFFF; // Broadcast address
+    cmd_req.zcl_basic_cmd.dst_endpoint = 255;             // Broadcast endpoint
+    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
+    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
+    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+    led_off();
+    for (int i = 0; i < 10; i++)
+    {
+        if (esp_zb_lock_acquire(portMAX_DELAY))
+        {
+            esp_zb_zcl_on_off_cmd_req(&cmd_req);
+            esp_zb_lock_release();
+            // ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
+        }
+        vTaskDelay(250 / portTICK_PERIOD_MS);
+    }
+    ESP_LOGI(TAG, "broadcast ping stop");
+    // led_blink_slow();
+    vTaskDelete(NULL);
+}
+
+void broadcast_ping_task(void *arg, void *data)
+{
+    xTaskCreate(broadcast_ping, "broacast_ping", 4096, NULL, 1, NULL);
 }
 
 void button_init(uint32_t button_num)
@@ -260,7 +224,7 @@ void button_init(uint32_t button_num)
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_UP, button_event_cb, (void *)BUTTON_PRESS_UP);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT, button_event_cb, (void *)BUTTON_PRESS_REPEAT);
     // err |= iot_button_register_cb(btn, BUTTON_PRESS_REPEAT_DONE, button_event_cb, (void *)BUTTON_PRESS_REPEAT_DONE);
-    err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, button_event_cb_double_clk, (void *)BUTTON_DOUBLE_CLICK);
+    err |= iot_button_register_cb(btn, BUTTON_DOUBLE_CLICK, broadcast_ping_task, (void *)BUTTON_DOUBLE_CLICK);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_START, button_event_cb, (void *)BUTTON_LONG_PRESS_START);
     // err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_HOLD, button_event_cb, (void *)BUTTON_LONG_PRESS_HOLD);
     err |= iot_button_register_cb(btn, BUTTON_LONG_PRESS_UP, reset_and_reboot, (void *)BUTTON_LONG_PRESS_UP);
@@ -270,7 +234,6 @@ void button_init(uint32_t button_num)
 static void esp_zb_task(void *pvParameters)
 {
     ESP_LOGI(TAG, "Entering ESP_ZB_TASK");
-    // initialize Zigbee stack with Zigbee end-device config
     esp_zb_cfg_t zb_nwk_cfg = ESP_ZB_ZED_CONFIG();
     esp_zb_init(&zb_nwk_cfg);
 
@@ -279,21 +242,19 @@ static void esp_zb_task(void *pvParameters)
     zcl_version = ESP_ZB_ZCL_BASIC_ZCL_VERSION_DEFAULT_VALUE;
     null_values = ESP_ZB_ZCL_BASIC_POWER_SOURCE_DEFAULT_VALUE;
 
-    // basic cluster create with fully customized
+    // basic cluster create
     esp_zb_attribute_list_t *basic_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_BASIC);
     esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &zcl_version);
     esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_POWER_SOURCE_ID, &null_values);
-    // esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MODEL_IDENTIFIER_ID, &modelid[0]);
-    // esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MANUFACTURER_NAME_ID, &manufname[0]);
     ESP_ERROR_CHECK(esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MANUFACTURER_NAME_ID, MANUFACTURER_NAME));
     ESP_ERROR_CHECK(esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_MODEL_IDENTIFIER_ID, MODEL_IDENTIFIER));
-    // identify cluster create with fully customized
+    // identify cluster
     esp_zb_attribute_list_t *esp_zb_identify_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_IDENTIFY);
     ESP_ERROR_CHECK(esp_zb_identify_cluster_add_attr(esp_zb_identify_cluster, ESP_ZB_ZCL_ATTR_IDENTIFY_IDENTIFY_TIME_ID, &null_values));
-    // group cluster create with fully customized
+    // group cluster
     esp_zb_attribute_list_t *esp_zb_groups_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_GROUPS);
     ESP_ERROR_CHECK(esp_zb_groups_cluster_add_attr(esp_zb_groups_cluster, ESP_ZB_ZCL_ATTR_GROUPS_NAME_SUPPORT_ID, &null_values));
-    // scenes cluster create with standard cluster + customized
+    // scenes cluster with standard cluster + customized
     esp_zb_attribute_list_t *esp_zb_scenes_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_SCENES);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_NAME_SUPPORT_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_GROUP_ID, &null_values);
@@ -301,7 +262,7 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_SCENE_VALID_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_cluster, ESP_ZB_ZCL_ATTR_SCENES_SCENE_COUNT_ID, &null_values);
 
-    // create cluster lists for this endpoint
+    // cluster lists for this endpoint
     esp_zb_cluster_list_t *cluster_list = esp_zb_zcl_cluster_list_create();
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_basic_cluster(cluster_list, basic_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_identify_cluster(cluster_list, esp_zb_identify_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
@@ -314,17 +275,17 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_attribute_list_t *esp_zb_on_off_cluster = esp_zb_on_off_cluster_create(&on_off_cfg);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list, esp_zb_on_off_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
-    // Analog input cluster
+    // analog input cluster
     // from https://github.com/Bobstin/AutomatedBrewery/blob/b292b6e3d0344bba9a9dc35f3571ffdb034a176e/ESPZigbeeDemo/zigbee_cluster_demo/main/esp_zb_light.c
-    // esp_zb_analog_value_cluster_cfg_t analog_value_cfg;
+    // esp_zb_analog_value_ analog_value_cfg;
     esp_zb_analog_input_cluster_cfg_t analog_input_cfg;
     analog_input_cfg.out_of_service = 0;
     analog_input_cfg.present_value = 0;
-    analog_input_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE; // ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAGS_DEFAULT_VALUE; // ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
+    analog_input_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
     esp_zb_attribute_list_t *esp_zb_analog_input_cluster = esp_zb_analog_input_cluster_create(&analog_input_cfg);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_input_cluster(cluster_list, esp_zb_analog_input_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
-    /* Create customized temperature sensor endpoint */
+    // temperature sensor
     esp_zb_temperature_sensor_cfg_t sensor_cfg = ESP_ZB_DEFAULT_TEMPERATURE_SENSOR_CONFIG();
     sensor_cfg.temp_meas_cfg.min_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MIN_VALUE);
     sensor_cfg.temp_meas_cfg.max_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MAX_VALUE);
@@ -340,11 +301,6 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_device_register(esp_zb_ep_list);
 
-    // create customized light endpoint
-    // esp_zb_on_off_light_cfg_t light_cfg = ESP_ZB_DEFAULT_ON_OFF_LIGHT_CONFIG();
-    // esp_zb_ep_list_t *esp_zb_on_off_light_ep = esp_zb_on_off_light_ep_create(HA_ESP_LIGHT_ENDPOINT, &light_cfg);
-    // esp_zb_device_register(esp_zb_on_off_light_ep);
-
     esp_zb_core_action_handler_register(zb_action_handler);
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
 
@@ -357,14 +313,20 @@ void update_attribute()
     int8_t rssi;
     for (;;)
     {
-
         if (esp_zb_lock_acquire(portMAX_DELAY))
         {
             counter = counter + 1.0;
             rssi = esp_ieee802154_get_recent_rssi();
-            ESP_LOGI(TAG, "rssi=%i counter=%f", rssi, counter);
+            ESP_LOGI(TAG, "rssi=%i counter=%f battery=%0.2fmV adc_raw=%d", rssi, counter, battery_voltage, adc_raw[0][0]);
 
-            esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID, &counter, false);
+            esp_zb_zcl_status_t state_analog = esp_zb_zcl_set_attribute_val(
+                SENSOR_ENDPOINT,
+                ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT,
+                ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+                ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID,
+                &battery_voltage,
+                false);
+
             esp_zb_lock_release();
             if (state_analog != ESP_ZB_ZCL_STATUS_SUCCESS)
             {
@@ -373,24 +335,6 @@ void update_attribute()
         }
 
         vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
-}
-
-static void double_click_cicle()
-{
-    esp_zb_zcl_on_off_cmd_t cmd_req;
-    cmd_req.zcl_basic_cmd.dst_addr_u.addr_short = on_off_light.short_addr;
-    cmd_req.zcl_basic_cmd.dst_endpoint = on_off_light.endpoint;
-    cmd_req.zcl_basic_cmd.src_endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT;
-    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_16_ENDP_PRESENT;
-    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
-    for(;;) {
-        if(test_network && esp_zb_lock_acquire(portMAX_DELAY)){
-            esp_zb_zcl_on_off_cmd_req(&cmd_req);
-            esp_zb_lock_release();
-            ESP_EARLY_LOGI(TAG, "Send 'on_off toggle' command to address(0x%x) endpoint(%d)", on_off_light.short_addr, on_off_light.endpoint);
-        }
-        vTaskDelay(400 / portTICK_PERIOD_MS);
     }
 }
 
@@ -403,7 +347,7 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
     button_init(BOOT_BUTTON_NUM);
+    battery_sensor_init();
     xTaskCreate(update_attribute, "update_attribute", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
-    xTaskCreate(double_click_cicle, "double_click_cicle", 4096, NULL, 4, NULL);
 }

@@ -6,6 +6,7 @@ DFRobot FireBeetle 2 ESP32 C6
 - [platformio beetle c3](https://docs.platformio.org/en/latest/boards/espressif32/dfrobot_beetle_esp32c3.html#board-espressif32-dfrobot-beetle-esp32c3)
 - [aliexpress](https://it.aliexpress.com/item/1005006449798923.html?spm=a2g0o.order_list.order_list_main.11.61fb3696c7SVgF&gatewayAdapt=glo2ita)
 - [reduce power consumption](https://diyi0t.com/reduce-the-esp32-power-consumption/)
+- [esp32-c6 datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf)
 
 ```
 [env:dfrobot_beetle_esp32c3]
