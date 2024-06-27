@@ -291,14 +291,36 @@ static void esp_zb_task(void *pvParameters)
     sensor_cfg.temp_meas_cfg.max_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MAX_VALUE);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_temperature_meas_cluster(cluster_list, esp_zb_temperature_meas_cluster_create(&(sensor_cfg.temp_meas_cfg)), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
+    // endpoint 10
     esp_zb_endpoint_config_t EPC = {
         .endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
         .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
         .app_device_version = 1,
     };
+
+
+    // endpoint 11
+    // identify cluster
+    esp_zb_attribute_list_t *esp_zb_identify_cluster_vin = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_IDENTIFY);
+    ESP_ERROR_CHECK(esp_zb_identify_cluster_add_attr(esp_zb_identify_cluster_vin, ESP_ZB_ZCL_ATTR_IDENTIFY_IDENTIFY_TIME_ID, &null_values));
+    esp_zb_cluster_list_t *cluster_list_vin = esp_zb_zcl_cluster_list_create();
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_identify_cluster(cluster_list_vin, esp_zb_identify_cluster_vin, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_endpoint_config_t EPC_VIN = {
+        .endpoint = HA_VIN_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
+        .app_device_version = 1,
+    };
+    //esp_zb_ep_list_t *esp_zb_ep_list_vin = esp_zb_ep_list_create();
+    // esp_zb_ep_list_add_ep(esp_zb_ep_list_vin, cluster_list_vin, EPC_VIN);
+    // esp_zb_device_register(esp_zb_ep_list_vin);
+
+
     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
+    esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_vin, EPC_VIN);
+
     esp_zb_device_register(esp_zb_ep_list);
 
     esp_zb_core_action_handler_register(zb_action_handler);

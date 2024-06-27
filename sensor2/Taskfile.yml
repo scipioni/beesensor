@@ -44,3 +44,7 @@ tasks:
   erase:
     cmds:
       - idf.py -p ${SERIAL_PORT} erase-flash
+
+  kill:
+    cmds:
+      - killall /home/scipio/.espressif/python_env/idf5.2_py3.12_env/bin/python
