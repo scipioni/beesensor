@@ -125,4 +125,18 @@ sudo usermod -a -G uucp $USER
 sudo usermod -a -G lock $USER
 ```
 
+## deepsleep (not implemented)
+zigbee2mqtt/FRIENDLY_NAME/set
+
+Publishing messages to this topic allows you to control your Zigbee devices or groups via MQTT. Only accepts JSON messages. An example to control a Philips Hue Go (7146060PH). How to control a specific device can be found in the Exposes section on the device page which can be accessed via "Supported devices".
+
+```
+{
+  "state": "ON", // Or "OFF", "TOGGLE"
+  "brightness": 255, // Value between 0 and 255
+  "color": {"x": 0.123, "y": 0.123} // Color in XY
+}
+```
+
+If FRIENDLY_NAME refers to a group, it will set the state for all devices in that group.
 
