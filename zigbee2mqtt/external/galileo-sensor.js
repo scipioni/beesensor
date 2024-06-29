@@ -20,7 +20,7 @@ const definition = {
     vendor: 'Galileo',
     description: 'Galileo generic sensor',
     extend: [
-        deviceEndpoints({"endpoints":{"10":10,"11":11}}),
+        deviceEndpoints({"endpoints":{"10":10,"11":11,"12":12}}),
         identify(),
         onOff({ "powerOnBehavior": false }),
         commandsOnOff({commands: ['toggle'], bind: false}),
@@ -45,6 +45,15 @@ const definition = {
             description: 'solar panel voltage',
             access: 'STATE_GET',
             endpointNames: ["11"],
+        }),
+        numeric({
+            name: 'counter',
+            cluster: 'genAnalogValue',
+            attribute: 'presentValue',
+            reporting: { min: 0, max: 60, change: 15 },
+            description: 'counter',
+            access: 'STATE_GET',
+            endpointNames: ["12"],
         }),
         // numeric({
             //     name: 'xyz',

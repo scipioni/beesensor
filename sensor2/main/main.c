@@ -96,6 +96,26 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
                      extended_pan_id[7], extended_pan_id[6], extended_pan_id[5], extended_pan_id[4],
                      extended_pan_id[3], extended_pan_id[2], extended_pan_id[1], extended_pan_id[0],
                      esp_zb_get_pan_id(), esp_zb_get_current_channel(), esp_zb_get_short_address());
+            // https://github.com/espressif/esp-zigbee-sdk/issues/341
+            // memcpy(&(coord.ieee_addr), extended_pan_id, sizeof(esp_zb_ieee_addr_t));
+            // coord.endpoint = 1;
+            // coord.short_addr = 0;
+            // /* bind the reporting clusters to ep */
+            // esp_zb_zdo_bind_req_param_t bind_req;
+            // memcpy(&(bind_req.dst_address_u.addr_long), coord.ieee_addr, sizeof(esp_zb_ieee_addr_t));
+            // bind_req.dst_endp = coord.endpoint;
+            // bind_req.dst_addr_mode = ESP_ZB_ZDO_BIND_DST_ADDR_MODE_64_BIT_EXTENDED;
+            // esp_zb_get_long_address(bind_req.src_address);
+            // bind_req.req_dst_addr = esp_zb_get_short_address();
+            // static zdo_info_user_ctx_t test_info_ctx;
+            // test_info_ctx.short_addr = coord.short_addr;
+            // for (auto reporting_info : zigbeeC->reporting_list)
+            // {
+            //     bind_req.cluster_id = reporting_info.cluster_id;
+            //     bind_req.src_endp = reporting_info.ep;
+            //     test_info_ctx.endpoint = reporting_info.ep;
+            //     esp_zb_zdo_device_bind_req(&bind_req, bind_cb, (void *) & (test_info_ctx));
+            // }
         }
         else
         {
@@ -163,7 +183,7 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
 static void reset_and_reboot(void *arg, void *data)
 {
     // ESP_EARLY_LOGI
-    ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
+    ESP_LOGI(TAG, "Button event %s: reset zigbee and reboot", button_event_table[(button_event_t)data]);
     led_blink_and_off();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     esp_zb_factory_reset();
@@ -315,6 +335,8 @@ static void esp_zb_task(void *pvParameters)
     // esp_zb_attribute_list_t *vin_type_cluster = esp_zb_electrical_meas_cluster_create(&vin_type_cfg);
     // ESP_ERROR_CHECK(esp_zb_cluster_list_add_electrical_meas_cluster(cluster_list_vin, vin_type_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
         
+
+
     esp_zb_endpoint_config_t EPC_VIN = {
         .endpoint = HA_VIN_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
@@ -323,15 +345,50 @@ static void esp_zb_task(void *pvParameters)
     };
     /* ********  */
 
+    /***** endpoint 12 *****/
+    esp_zb_cluster_list_t *cluster_list_counter = esp_zb_zcl_cluster_list_create();
+    esp_zb_analog_value_cluster_cfg_t counter_cfg;
+    counter_cfg.out_of_service = 0;
+    counter_cfg.present_value = 0;
+    counter_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
+    esp_zb_attribute_list_t *counter_cluster = esp_zb_analog_value_cluster_create(&counter_cfg);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_value_cluster(cluster_list_counter, counter_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_endpoint_config_t EPC_COUNTER = {
+        .endpoint = HA_COUNTER_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
+        .app_device_version = 1,
+    };
+
+    /* Config the reporting info (zigbee sdk examples temperature) */
+    // esp_zb_zcl_reporting_info_t reporting_info_counter = {
+    //     .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
+    //     .ep = HA_COUNTER_ENDPOINT,
+    //     .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE,
+    //     .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+    //     .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+    //     .u.send_info.min_interval = 1,
+    //     .u.send_info.max_interval = 0,
+    //     .u.send_info.def_min_interval = 1,
+    //     .u.send_info.def_max_interval = 0,
+    //     .u.send_info.delta.u16 = 15,
+    //     .attr_id = ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID,
+    //     .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
+    // };
+
+    /***** end endpoint 12 *****/
 
 
     esp_zb_ep_list_t *esp_zb_ep_list = esp_zb_ep_list_create();
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_vin, EPC_VIN);
+    esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_counter, EPC_COUNTER);
+
 
     esp_zb_device_register(esp_zb_ep_list);
 
     esp_zb_core_action_handler_register(zb_action_handler);
+    //esp_zb_zcl_update_reporting_info(&reporting_info_counter);
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
 
     ESP_ERROR_CHECK(esp_zb_start(false));
@@ -372,6 +429,19 @@ void update_attributes()
             if (state_analog_vin != ESP_ZB_ZCL_STATUS_SUCCESS)
             {
                 ESP_LOGE(TAG, "Setting analog attribute failed!");
+            }
+
+            esp_zb_zcl_status_t state_analog_counter = esp_zb_zcl_set_attribute_val(
+                HA_COUNTER_ENDPOINT,
+                ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE,
+                ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
+                ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID,
+                &counter,
+                false);
+
+            if (state_analog_counter != ESP_ZB_ZCL_STATUS_SUCCESS)
+            {
+                ESP_LOGE(TAG, "Setting counter attribute failed!");
             }
             esp_zb_lock_release();
         }
