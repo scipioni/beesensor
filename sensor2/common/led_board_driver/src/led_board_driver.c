@@ -62,8 +62,8 @@ void led_on()
 
 void led_off()
 {
-    led_time_on_ms = 0;
-    led_time_off_ms = SLOWTIME;
+    led_time_on_ms = 10;
+    led_time_off_ms = 3000;
 }
 
 void led_blink_fast()

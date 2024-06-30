@@ -11,17 +11,23 @@
 #include "esp_ieee802154.h"
 #include "ha/esp_zigbee_ha_standard.h"
 #include "esp_sleep.h"
+#include "string.h"
 
 #include "temp_sensor_driver.h"
 #include "led_board_driver.h"
 #include "battery_sensor.h"
 
 bool connected = false;
-const int wakeup_time_sec = 600;
+const uint32_t wakeup_time_sec = 3600;
 
 static const char *TAG = "GALILEO_SENSOR";
 float_t counter = 1.0;
 
+// typedef struct zbstring_s {
+//     uint8_t len;
+//     char data[];
+// } ESP_ZB_PACKED_STRUCT
+// zbstring_t;
 
 static void esp_app_temp_sensor_handler(float temperature)
 {
@@ -163,16 +169,102 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
     return ret;
 }
 
+// static void esp_app_zb_attribute_handler(uint16_t cluster_id, const esp_zb_zcl_attribute_t* attribute)
+// {
+//     /* Basic cluster attributes */
+//     if (cluster_id == ESP_ZB_ZCL_CLUSTER_ID_BASIC) {
+//         if (attribute->id == ESP_ZB_ZCL_ATTR_BASIC_MANUFACTURER_NAME_ID &&
+//             attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_CHAR_STRING &&
+//             attribute->data.value) {
+//             zbstring_t *zbstr = (zbstring_t *)attribute->data.value;
+//             char *string = (char*)malloc(zbstr->len + 1);
+//             memcpy(string, zbstr->data, zbstr->len);
+//             string[zbstr->len] = '\0';
+//             ESP_LOGI(TAG, "Peer Manufacturer is \"%s\"", string);
+//             free(string);
+//         }
+//         if (attribute->id == ESP_ZB_ZCL_ATTR_BASIC_MODEL_IDENTIFIER_ID &&
+//             attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_CHAR_STRING &&
+//             attribute->data.value) {
+//             zbstring_t *zbstr = (zbstring_t *)attribute->data.value;
+//             char *string = (char*)malloc(zbstr->len + 1);
+//             memcpy(string, zbstr->data, zbstr->len);
+//             string[zbstr->len] = '\0';
+//             ESP_LOGI(TAG, "Peer Model is \"%s\"", string);
+//             free(string);
+//         }
+//     }
+
+//     /* Temperature Measurement cluster attributes */
+//     // if (cluster_id == ESP_ZB_ZCL_CLUSTER_ID_TEMP_MEASUREMENT) {
+//     //     if (attribute->id == ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_VALUE_ID &&
+//     //         attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_S16) {
+//     //         int16_t value = attribute->data.value ? *(int16_t *)attribute->data.value : 0;
+//     //         ESP_LOGI(TAG, "Measured Value is %.2f degrees Celsius", zb_s16_to_temperature(value));
+//     //     }
+//     //     if (attribute->id == ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_MIN_VALUE_ID &&
+//     //         attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_S16) {
+//     //         int16_t min_value = attribute->data.value ? *(int16_t *)attribute->data.value : 0;
+//     //         ESP_LOGI(TAG, "Min Measured Value is %.2f degrees Celsius", zb_s16_to_temperature(min_value));
+//     //     }
+//     //     if (attribute->id == ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_MAX_VALUE_ID &&
+//     //         attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_S16) {
+//     //         int16_t max_value = attribute->data.value ? *(int16_t *)attribute->data.value : 0;
+//     //         ESP_LOGI(TAG, "Max Measured Value is %.2f degrees Celsius", zb_s16_to_temperature(max_value));
+//     //     }
+//     //     if (attribute->id == ESP_ZB_ZCL_ATTR_TEMP_MEASUREMENT_TOLERANCE_ID &&
+//     //         attribute->data.type == ESP_ZB_ZCL_ATTR_TYPE_U16) {
+//     //         uint16_t tolerance = attribute->data.value ? *(uint16_t *)attribute->data.value : 0;
+//     //         ESP_LOGI(TAG, "Tolerance is %.2f degrees Celsius", 1.0 * tolerance / 100);
+//     //     }
+//     // }
+// }
+
+
+// static esp_err_t zb_attribute_reporting_handler(const esp_zb_zcl_report_attr_message_t *message)
+// {
+//     ESP_RETURN_ON_FALSE(message, ESP_FAIL, TAG, "Empty message");
+//     ESP_RETURN_ON_FALSE(message->status == ESP_ZB_ZCL_STATUS_SUCCESS, ESP_ERR_INVALID_ARG, TAG, "Received message: error status(%d)",
+//                         message->status);
+//     ESP_LOGI(TAG, "Received report from address(0x%x) src endpoint(%d) to dst endpoint(%d) cluster(0x%x)",
+//              message->src_address.u.short_addr, message->src_endpoint,
+//              message->dst_endpoint, message->cluster);
+//     esp_app_zb_attribute_handler(message->cluster, &message->attribute);
+//     return ESP_OK;
+// }
+
+// static esp_err_t zb_configure_report_resp_handler(const esp_zb_zcl_cmd_config_report_resp_message_t *message)
+// {
+//     ESP_RETURN_ON_FALSE(message, ESP_FAIL, TAG, "Empty message");
+//     ESP_RETURN_ON_FALSE(message->info.status == ESP_ZB_ZCL_STATUS_SUCCESS, ESP_ERR_INVALID_ARG, TAG, "Received message: error status(%d)",
+//                         message->info.status);
+
+//     esp_zb_zcl_config_report_resp_variable_t *variable = message->variables;
+//     while (variable) {
+//         ESP_LOGI(TAG, "Configure report response: status(%d), cluster(0x%x), direction(0x%x), attribute(0x%x)",
+//                  variable->status, message->info.cluster, variable->direction, variable->attribute_id);
+//         variable = variable->next;
+//     }
+
+//     return ESP_OK;
+// }
+
 static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id, const void *message)
 {
     esp_err_t ret = ESP_OK;
     switch (callback_id)
     {
+    // case ESP_ZB_CORE_REPORT_ATTR_CB_ID:
+    //     ret = zb_attribute_reporting_handler((esp_zb_zcl_report_attr_message_t *)message);
+    //     break;
+    // case ESP_ZB_CORE_CMD_REPORT_CONFIG_RESP_CB_ID:
+    //     ret = zb_configure_report_resp_handler((esp_zb_zcl_cmd_config_report_resp_message_t *)message);
+    //     break;
     case ESP_ZB_CORE_SET_ATTR_VALUE_CB_ID:
         ret = zb_attribute_handler((esp_zb_zcl_set_attr_value_message_t *)message);
         break;
-    case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
-        break;
+    // case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
+    //     break;
     default:
         ESP_LOGW(TAG, "Receive Zigbee action(0x%x) default callback", callback_id);
         break;
@@ -347,32 +439,34 @@ static void esp_zb_task(void *pvParameters)
 
     /***** endpoint 12 *****/
     esp_zb_cluster_list_t *cluster_list_counter = esp_zb_zcl_cluster_list_create();
-    esp_zb_analog_value_cluster_cfg_t counter_cfg;
+    esp_zb_analog_input_cluster_cfg_t counter_cfg;
     counter_cfg.out_of_service = 0;
     counter_cfg.present_value = 0;
     counter_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
-    esp_zb_attribute_list_t *counter_cluster = esp_zb_analog_value_cluster_create(&counter_cfg);
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_value_cluster(cluster_list_counter, counter_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_attribute_list_t *counter_cluster = esp_zb_analog_input_cluster_create(&counter_cfg);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_input_cluster(cluster_list_counter, counter_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
     esp_zb_endpoint_config_t EPC_COUNTER = {
         .endpoint = HA_COUNTER_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
         .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
-        .app_device_version = 1,
+        .app_device_version = 4,
     };
 
     /* Config the reporting info (zigbee sdk examples temperature) */
+    // https://github.com/espressif/esp-zigbee-sdk/issues/341   
+    // esp_zb_zcl_report_config_cmd_req
     // esp_zb_zcl_reporting_info_t reporting_info_counter = {
     //     .direction = ESP_ZB_ZCL_CMD_DIRECTION_TO_SRV,
     //     .ep = HA_COUNTER_ENDPOINT,
-    //     .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE,
+    //     .cluster_id = ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT,
     //     .cluster_role = ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
     //     .dst.profile_id = ESP_ZB_AF_HA_PROFILE_ID,
     //     .u.send_info.min_interval = 1,
     //     .u.send_info.max_interval = 0,
     //     .u.send_info.def_min_interval = 1,
     //     .u.send_info.def_max_interval = 0,
-    //     .u.send_info.delta.u16 = 15,
-    //     .attr_id = ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID,
+    //     .u.send_info.delta.u16 = 1,
+    //     .attr_id = ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID,
     //     .manuf_code = ESP_ZB_ZCL_ATTR_NON_MANUFACTURER_SPECIFIC,
     // };
 
@@ -433,9 +527,9 @@ void update_attributes()
 
             esp_zb_zcl_status_t state_analog_counter = esp_zb_zcl_set_attribute_val(
                 HA_COUNTER_ENDPOINT,
-                ESP_ZB_ZCL_CLUSTER_ID_ANALOG_VALUE,
+                ESP_ZB_ZCL_CLUSTER_ID_ANALOG_INPUT,
                 ESP_ZB_ZCL_CLUSTER_SERVER_ROLE,
-                ESP_ZB_ZCL_ATTR_ANALOG_VALUE_PRESENT_VALUE_ID,
+                ESP_ZB_ZCL_ATTR_ANALOG_INPUT_PRESENT_VALUE_ID,
                 &counter,
                 false);
 
@@ -450,6 +544,15 @@ void update_attributes()
     }
 }
 
+void deep_sleep() {
+    vTaskDelay(30000 / portTICK_PERIOD_MS);
+    ESP_LOGI(TAG, "entring deep sleep...");
+    led_blink_and_off();
+    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+    esp_deep_sleep_start();
+    vTaskDelete(NULL);
+}
+
 void app_main(void)
 {
     esp_zb_platform_config_t config = {
@@ -460,6 +563,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
     button_init(BOOT_BUTTON_NUM);
     battery_sensor_init();
+    //xTaskCreate(deep_sleep, "deep_sleep", 4096, NULL, 1, NULL);
     xTaskCreate(update_attributes, "update_attributes", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }

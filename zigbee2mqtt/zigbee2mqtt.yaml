@@ -10,7 +10,6 @@ advanced:
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
-  log_level: debug
 device_options:
   legacy: false
 devices: devices.yaml
@@ -19,8 +18,4 @@ external_converters:
   - external/galileo-temp.js
 permit_join: false
 log_level: debug
-availability:
-  active:
-    timeout: 1
-  passive:
-    timeout: 1
+availability: false

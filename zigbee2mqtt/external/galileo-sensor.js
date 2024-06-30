@@ -48,9 +48,9 @@ const definition = {
         }),
         numeric({
             name: 'counter',
-            cluster: 'genAnalogValue',
+            cluster: 'genAnalogInput',
             attribute: 'presentValue',
-            reporting: { min: 0, max: 60, change: 15 },
+            reporting: { min: 0, max: 10, change: 1 },
             description: 'counter',
             access: 'STATE_GET',
             endpointNames: ["12"],
