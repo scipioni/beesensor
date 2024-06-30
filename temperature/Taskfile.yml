@@ -1,0 +1,50 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+dotenv: [".env"]
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  target:
+    cmds:
+      - idf.py set-target esp32c6
+    sources:
+      - sdkconfig.defaults
+    generates:
+      - sdkconfig
+
+  build:
+    deps: [target]
+    cmds:
+      - idf.py build
+  
+  rebuild:
+    cmds:
+      - rm -f sdkconfig
+      - task: build
+
+  flash:
+    deps: [target]
+    cmds:
+      - idf.py -p ${SERIAL_PORT} flash monitor
+  
+  monitor:
+    deps: [target]
+    cmds:
+      - idf.py -p ${SERIAL_PORT} monitor
+
+  erase:
+    cmds:
+      - idf.py -p ${SERIAL_PORT} erase-flash
+
+  kill:
+    cmds:
+      - killall /home/scipio/.espressif/python_env/idf5.2_py3.12_env/bin/python

@@ -10,7 +10,7 @@
 			"path": "esp-zigbee-sdk"
 		},
 		{
-			"path": "sensor3"
+			"path": "temperature"
 		}
 	],
 	"settings": {}
