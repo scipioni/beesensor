@@ -125,7 +125,7 @@ sudo usermod -a -G uucp $USER
 sudo usermod -a -G lock $USER
 ```
 
-## deepsleep (not implemented)
+## deepsleep
 zigbee2mqtt/FRIENDLY_NAME/set
 
 Publishing messages to this topic allows you to control your Zigbee devices or groups via MQTT. Only accepts JSON messages. An example to control a Philips Hue Go (7146060PH). How to control a specific device can be found in the Exposes section on the device page which can be accessed via "Supported devices".
