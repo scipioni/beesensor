@@ -23,6 +23,10 @@
 #define HA_VIN_ENDPOINT 11
 #define HA_COUNTER_ENDPOINT 12
 
+#define DEEP_SLEEP_ON 20 // seconds
+#define DEEP_SLEEP_OFF 600 // seconds
+#define DEEP_SLEEP_ACTIVE 1
+
 
 #define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_GALILEO_SENSOR_ENDPOINT
 #define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK /* Zigbee primary channel mask use in the example */

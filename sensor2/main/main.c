@@ -18,7 +18,6 @@
 #include "battery_sensor.h"
 
 bool connected = false;
-const uint32_t wakeup_time_sec = 3600;
 
 static const char *TAG = "GALILEO_SENSOR";
 float_t counter = 1.0;
@@ -287,7 +286,7 @@ static void button_event_cb(void *arg, void *data)
     ESP_LOGI(TAG, "Button event %s", button_event_table[(button_event_t)data]);
     led_blink_and_off();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+    esp_sleep_enable_timer_wakeup(DEEP_SLEEP_OFF * 1000000);
     esp_deep_sleep_start();
 }
 
@@ -545,10 +544,10 @@ void update_attributes()
 }
 
 void deep_sleep() {
-    vTaskDelay(30000 / portTICK_PERIOD_MS);
+    vTaskDelay(DEEP_SLEEP_ON * 1000 / portTICK_PERIOD_MS);
     ESP_LOGI(TAG, "entring deep sleep...");
     led_blink_and_off();
-    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+    esp_sleep_enable_timer_wakeup(DEEP_SLEEP_OFF * 1000000);
     esp_deep_sleep_start();
     vTaskDelete(NULL);
 }
@@ -563,7 +562,9 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
     button_init(BOOT_BUTTON_NUM);
     battery_sensor_init();
-    //xTaskCreate(deep_sleep, "deep_sleep", 4096, NULL, 1, NULL);
+    #ifdef DEEP_SLEEP_ACTIVE
+        xTaskCreate(deep_sleep, "deep_sleep", 4096, NULL, 1, NULL);
+    #endif
     xTaskCreate(update_attributes, "update_attributes", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }
