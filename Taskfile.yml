@@ -16,3 +16,12 @@ tasks:
       - mkdir -p runtime
       - touch runtime/devices.yaml
       - docker compose up zigbee2mqtt mqtt
+
+  cli:
+    cmds:
+      - |
+        docker run -it --rm efrecon/mqtt-client sub \
+        -h 127.0.0.1 \
+        --insecure \
+        -t "#" \
+        -v
