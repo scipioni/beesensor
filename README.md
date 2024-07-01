@@ -140,3 +140,8 @@ Publishing messages to this topic allows you to control your Zigbee devices or g
 
 If FRIENDLY_NAME refers to a group, it will set the state for all devices in that group.
 
+## devices and groups (links)
+
+https://www.zigbee2mqtt.io/guide/configuration/devices-groups.html
+
+https://www.zigbee2mqtt.io/guide/usage/groups.html
