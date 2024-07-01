@@ -141,6 +141,7 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
 {
     esp_err_t ret = ESP_OK;
     bool light_state = 0;
+    bool deepsleep = 0;
 
     ESP_RETURN_ON_FALSE(message, ESP_FAIL, TAG, "Empty message");
     ESP_RETURN_ON_FALSE(message->info.status == ESP_ZB_ZCL_STATUS_SUCCESS, ESP_ERR_INVALID_ARG, TAG, "Received message: error status(%d)",
@@ -162,6 +163,28 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 else
                 {
                     led_off();
+                }
+            }
+        }
+    }
+    else if (message->info.dst_endpoint == HA_DEEPSLEEP_ENDPOINT)
+    {
+        if (message->info.cluster == ESP_ZB_ZCL_CLUSTER_ID_ON_OFF)
+        {
+            if (message->attribute.id == ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID && message->attribute.data.type == ESP_ZB_ZCL_ATTR_TYPE_BOOL)
+            {
+                deepsleep = message->attribute.data.value ? *(bool *)message->attribute.data.value : deepsleep;
+                ESP_LOGI(TAG, "Deepsleep %s", deepsleep ? "On" : "Off");
+                if (deepsleep)
+                {
+                    // deep_sleep();
+                    ESP_LOGI(TAG, "recieved command, entring deep sleep in 10 sec...");
+                    vTaskDelay(10000 / portTICK_PERIOD_MS);
+                    ESP_LOGI(TAG, "entring deep sleep...");
+                    led_blink_and_off();
+                    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
+                    esp_deep_sleep_start();
+                    vTaskDelete(NULL);
                 }
             }
         }
@@ -452,6 +475,19 @@ static void esp_zb_task(void *pvParameters)
         .app_device_version = 4,
     };
 
+    // endpoint 13
+    esp_zb_cluster_list_t *cluster_list_deepsleep = esp_zb_zcl_cluster_list_create();
+    esp_zb_on_off_cluster_cfg_t deepsleep_cfg;
+    deepsleep_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
+    esp_zb_attribute_list_t *esp_zb_deepsleep_cluster = esp_zb_on_off_cluster_create(&deepsleep_cfg);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list_deepsleep, esp_zb_deepsleep_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_endpoint_config_t EPC_DEEPSLEEP = {
+        .endpoint = HA_DEEPSLEEP_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
+        .app_device_version = 1,
+    };
+
     /* Config the reporting info (zigbee sdk examples temperature) */
     // https://github.com/espressif/esp-zigbee-sdk/issues/341   
     // esp_zb_zcl_report_config_cmd_req
@@ -477,6 +513,7 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list, EPC);
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_vin, EPC_VIN);
     esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_counter, EPC_COUNTER);
+    esp_zb_ep_list_add_ep(esp_zb_ep_list, cluster_list_deepsleep, EPC_DEEPSLEEP);
 
 
     esp_zb_device_register(esp_zb_ep_list);
