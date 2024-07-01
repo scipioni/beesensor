@@ -20,9 +20,9 @@ const definition = {
     vendor: 'Galileo',
     description: 'Galileo generic sensor',
     extend: [
-        deviceEndpoints({"endpoints":{"10":10,"11":11,"12":12}}),
+        deviceEndpoints({"endpoints":{"10":10,"11":11,"12":12,"13":13}}),
         identify(),
-        onOff({ "powerOnBehavior": false }),
+        onOff({ "powerOnBehavior": false, endpointNames: ["10"]}),
         commandsOnOff({commands: ['toggle'], bind: false}),
         temperature(),
         //electricityMeter({"cluster":"electrical"}),
@@ -55,6 +55,7 @@ const definition = {
             access: 'STATE_GET',
             endpointNames: ["12"],
         }),
+        onOff({ "powerOnBehavior": false , endpointNames: ["13"]}),
         // numeric({
             //     name: 'xyz',
         //     cluster: '65522', // important

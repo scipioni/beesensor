@@ -22,6 +22,7 @@
 #define HA_ESP_GALILEO_SENSOR_ENDPOINT 10                                         /* esp light bulb device endpoint, used to process light controlling commands */
 #define HA_VIN_ENDPOINT 11
 #define HA_COUNTER_ENDPOINT 12
+#define HA_DEEPSLEEP_ENDPOINT 13
 
 #define DEEP_SLEEP_ON 20 // seconds
 #define DEEP_SLEEP_OFF 600 // seconds
