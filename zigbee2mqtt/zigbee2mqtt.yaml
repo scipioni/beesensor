@@ -22,3 +22,6 @@ external_converters:
 permit_join: false
 log_level: debug
 availability: false
+groups:
+  '1':
+    friendly_name: all

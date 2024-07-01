@@ -173,18 +173,8 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
             if (message->attribute.id == ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID && message->attribute.data.type == ESP_ZB_ZCL_ATTR_TYPE_BOOL)
             {
                 deepsleep = message->attribute.data.value ? *(bool *)message->attribute.data.value : deepsleep;
-                ESP_LOGI(TAG, "Deepsleep %s", deepsleep ? "On" : "Off");
-                if (deepsleep)
-                {
-                    // deep_sleep();
-                    ESP_LOGI(TAG, "recieved command, entring deep sleep in 10 sec...");
-                    vTaskDelay(10000 / portTICK_PERIOD_MS);
-                    ESP_LOGI(TAG, "entring deep sleep...");
-                    led_blink_and_off();
-                    esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000);
-                    esp_deep_sleep_start();
-                    vTaskDelete(NULL);
-                }
+                ESP_LOGI(TAG, "command received deepsleep=%s", deepsleep ? "on" : "off");
+
             }
         }
     }
@@ -285,8 +275,8 @@ static esp_err_t zb_action_handler(esp_zb_core_action_callback_id_t callback_id,
     case ESP_ZB_CORE_SET_ATTR_VALUE_CB_ID:
         ret = zb_attribute_handler((esp_zb_zcl_set_attr_value_message_t *)message);
         break;
-    // case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
-    //     break;
+    case ESP_ZB_CORE_CMD_DEFAULT_RESP_CB_ID:
+        break;
     default:
         ESP_LOGW(TAG, "Receive Zigbee action(0x%x) default callback", callback_id);
         break;

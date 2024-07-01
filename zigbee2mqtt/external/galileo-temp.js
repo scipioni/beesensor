@@ -1,4 +1,4 @@
-const {identify, temperature} = require('zigbee-herdsman-converters/lib/modernExtend');
+const {identify, temperature, numeric} = require('zigbee-herdsman-converters/lib/modernExtend');
 
 const definition = {
     zigbeeModel: ['galileo.temp'],

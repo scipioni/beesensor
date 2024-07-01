@@ -26,7 +26,7 @@
 
 #define DEEP_SLEEP_ON 20 // seconds
 #define DEEP_SLEEP_OFF 600 // seconds
-#define DEEP_SLEEP_ACTIVE 1
+//#define DEEP_SLEEP_ACTIVE 1
 
 
 #define SENSOR_ENDPOINT 10                                               // per adesso uguale a HA_ESP_GALILEO_SENSOR_ENDPOINT
