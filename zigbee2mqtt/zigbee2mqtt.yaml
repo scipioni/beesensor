@@ -10,6 +10,9 @@ advanced:
   homeassistant_legacy_entity_attributes: false
   legacy_api: false
   legacy_availability_payload: false
+  last_seen: ISO_8601
+  log_output:
+    - console
 device_options:
   legacy: false
 devices: devices.yaml
