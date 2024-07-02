@@ -367,6 +367,13 @@ static void esp_zb_task(void *pvParameters)
     zcl_version = ESP_ZB_ZCL_BASIC_ZCL_VERSION_DEFAULT_VALUE;
     null_values = ESP_ZB_ZCL_BASIC_POWER_SOURCE_DEFAULT_VALUE;
 
+    // endpoint 10
+    esp_zb_endpoint_config_t EPC = {
+        .endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
+        .app_device_version = 1,
+    };
     // basic cluster create
     esp_zb_attribute_list_t *basic_cluster = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_BASIC);
     esp_zb_basic_cluster_add_attr(basic_cluster, ESP_ZB_ZCL_ATTR_BASIC_ZCL_VERSION_ID, &zcl_version);
@@ -416,15 +423,14 @@ static void esp_zb_task(void *pvParameters)
     sensor_cfg.temp_meas_cfg.max_value = zb_temperature_to_s16(ESP_TEMP_SENSOR_MAX_VALUE);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_temperature_meas_cluster(cluster_list, esp_zb_temperature_meas_cluster_create(&(sensor_cfg.temp_meas_cfg)), ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
 
-    // endpoint 10
-    esp_zb_endpoint_config_t EPC = {
-        .endpoint = HA_ESP_GALILEO_SENSOR_ENDPOINT,
-        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-        .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
-        .app_device_version = 1,
-    };
 
     /* endpoint 11 with 2 attributes */
+    esp_zb_endpoint_config_t EPC_VIN = {
+        .endpoint = HA_VIN_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
+        .app_device_version = 1,
+    };
     esp_zb_cluster_list_t *cluster_list_vin = esp_zb_zcl_cluster_list_create();
     esp_zb_analog_input_cluster_cfg_t vin_cfg;
     vin_cfg.out_of_service = 0;
@@ -441,15 +447,15 @@ static void esp_zb_task(void *pvParameters)
         
 
 
-    esp_zb_endpoint_config_t EPC_VIN = {
-        .endpoint = HA_VIN_ENDPOINT,
-        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
-        .app_device_version = 1,
-    };
     /* ********  */
 
     /***** endpoint 12 *****/
+    esp_zb_endpoint_config_t EPC_COUNTER = {
+        .endpoint = HA_COUNTER_ENDPOINT,
+        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
+        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
+        .app_device_version = 4,
+    };
     esp_zb_cluster_list_t *cluster_list_counter = esp_zb_zcl_cluster_list_create();
     esp_zb_analog_input_cluster_cfg_t counter_cfg;
     counter_cfg.out_of_service = 0;
@@ -457,25 +463,31 @@ static void esp_zb_task(void *pvParameters)
     counter_cfg.status_flags = ESP_ZB_ZCL_ANALOG_INPUT_STATUS_FLAG_DEFAULT_VALUE;
     esp_zb_attribute_list_t *counter_cluster = esp_zb_analog_input_cluster_create(&counter_cfg);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_analog_input_cluster(cluster_list_counter, counter_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    esp_zb_endpoint_config_t EPC_COUNTER = {
-        .endpoint = HA_COUNTER_ENDPOINT,
-        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
-        .app_device_id = ESP_ZB_HA_CUSTOM_ATTR_DEVICE_ID,
-        .app_device_version = 4,
-    };
 
     // endpoint 13
-    esp_zb_cluster_list_t *cluster_list_deepsleep = esp_zb_zcl_cluster_list_create();
-    esp_zb_on_off_cluster_cfg_t deepsleep_cfg;
-    deepsleep_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
-    esp_zb_attribute_list_t *esp_zb_deepsleep_cluster = esp_zb_on_off_cluster_create(&deepsleep_cfg);
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list_deepsleep, esp_zb_deepsleep_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
     esp_zb_endpoint_config_t EPC_DEEPSLEEP = {
         .endpoint = HA_DEEPSLEEP_ENDPOINT,
         .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
         .app_device_id = ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID, // ESP_ZB_HA_ON_OFF_OUTPUT_DEVICE_ID,
         .app_device_version = 1,
     };
+    esp_zb_cluster_list_t *cluster_list_deepsleep = esp_zb_zcl_cluster_list_create();
+    esp_zb_on_off_cluster_cfg_t deepsleep_cfg;
+    deepsleep_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
+    esp_zb_attribute_list_t *esp_zb_deepsleep_cluster = esp_zb_on_off_cluster_create(&deepsleep_cfg);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list_deepsleep, esp_zb_deepsleep_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_attribute_list_t *esp_zb_groups_deepsleep = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_GROUPS);
+    ESP_ERROR_CHECK(esp_zb_groups_cluster_add_attr(esp_zb_groups_deepsleep, ESP_ZB_ZCL_ATTR_GROUPS_NAME_SUPPORT_ID, &null_values));
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_groups_cluster(cluster_list_deepsleep, esp_zb_groups_deepsleep, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+    esp_zb_attribute_list_t *esp_zb_scenes_deepsleep = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_SCENES);
+    esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_NAME_SUPPORT_ID, &null_values);
+    esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_GROUP_ID, &null_values);
+    esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_SCENE_ID, &null_values);
+    esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_SCENE_VALID_ID, &null_values);
+    esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_SCENE_COUNT_ID, &null_values);
+    ESP_ERROR_CHECK(esp_zb_cluster_list_add_scenes_cluster(cluster_list_deepsleep, esp_zb_scenes_deepsleep, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
+
+
 
     /* Config the reporting info (zigbee sdk examples temperature) */
     // https://github.com/espressif/esp-zigbee-sdk/issues/341   

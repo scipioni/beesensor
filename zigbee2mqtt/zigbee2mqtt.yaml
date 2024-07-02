@@ -25,3 +25,5 @@ availability: false
 groups:
   '1':
     friendly_name: all
+    devices:
+      - 0x543204fffe0b483c/13
