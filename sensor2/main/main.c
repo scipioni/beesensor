@@ -476,10 +476,7 @@ static void esp_zb_task(void *pvParameters)
     deepsleep_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
     esp_zb_attribute_list_t *esp_zb_deepsleep_cluster = esp_zb_on_off_cluster_create(&deepsleep_cfg);
     ESP_ERROR_CHECK(esp_zb_cluster_list_add_on_off_cluster(cluster_list_deepsleep, esp_zb_deepsleep_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    esp_zb_attribute_list_t *esp_zb_groups_deepsleep = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_GROUPS);
-    ESP_ERROR_CHECK(esp_zb_groups_cluster_add_attr(esp_zb_groups_deepsleep, ESP_ZB_ZCL_ATTR_GROUPS_NAME_SUPPORT_ID, &null_values));
-    ESP_ERROR_CHECK(esp_zb_cluster_list_add_groups_cluster(cluster_list_deepsleep, esp_zb_groups_deepsleep, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE));
-    esp_zb_attribute_list_t *esp_zb_scenes_deepsleep = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_SCENES);
+s
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_NAME_SUPPORT_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_GROUP_ID, &null_values);
     esp_zb_scenes_cluster_add_attr(esp_zb_scenes_deepsleep, ESP_ZB_ZCL_ATTR_SCENES_CURRENT_SCENE_ID, &null_values);

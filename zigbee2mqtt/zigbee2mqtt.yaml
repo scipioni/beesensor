@@ -23,7 +23,12 @@ permit_join: false
 log_level: debug
 availability: false
 groups:
-  '1':
-    friendly_name: all
+  '98':
+    friendly_name: prese
     devices:
-      - 0x543204fffe0b483c/13
+      - 0xa4c1387335b156ca/1
+  '99':
+    friendly_name: leds
+    retain: false
+    devices:
+      - 0x543204fffe0b483c/10
