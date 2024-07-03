@@ -1,6 +1,6 @@
 # Sensors
 
-##  sensore barometrico RUIZHI
+## sensore barometrico RUIZHI
 
 
 - [datasheet](qui ci va il link)
