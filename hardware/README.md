@@ -16,3 +16,8 @@
 
 - [shop](https://www.az-delivery.de/it/products/regen-sensor-modul)
 - [datasheet](https://cdn.shopify.com/s/files/1/1509/1638/files/Regen_Sensor_Modul_Datenblatt.pdf?7039380883858804706)
+
+## E-Ink display module
+
+- [shop](https://www.amazon.com/Resolution-Electronic-Controller-Interface-Raspberry/dp/B072Q4WTWH)
+- [datasheet](https://www.waveshare.com/w/upload/7/77/1.54inch_e-Paper_Datasheet.pdf)
