@@ -25,3 +25,7 @@ tasks:
         --insecure \
         -t "#" \
         -v
+
+  run:
+    cmds:
+      - docker run --rm -v $PWD/project:/project -w /project -u $EUID -e HOME=/tmp -it espressif/esp-matter
