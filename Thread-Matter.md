@@ -1,1 +1,15 @@
-
+# Matter e Thread
+## Cosa sono
+- Apple insieme ad Amazon, Google, Samsung e tutta la Zigbee Alliance hanno concordato una collaborazione per un nuovo standard sotto il nome di Project CHIP (Connected Home over IP) che è stato poi rinominato in Matter
+## Matter
+- Matter: set standardizzato di comandi trasmessi su reti IP locali; protocollo che consente la comunicazione fra dispositivi domotici di aziende diverse; usa Thread, Wi‑Fi ed Ethernet come tecnologie di rete sottostanti.
+- I dispositivi Matter su Thread utilizzano la rete Mesh (in sostanza è una rete in cui più dispositivi assumono il ruolo di router, cioè di ripetitore. Invece di rispedire semplicemente i segnali alla sorgente di origine, i dispositivi ripetono i segnali e li inoltrano agli altri dispositivi di rete presenti nel loro raggio d’azione)
+## Thread
+- Thread è invece la “novità” tra questi protocolli, perché il suo scopo è di gestire la connessione dei dispositivi della casa connessa a bassa potenza e che non richiedo una banda di trasmissione ampia; thread è una rete mesh, i cui i dispositivi sono cioè in grado di comunicare tra loro e di adattarsi alla variazione della rete, facendo anche fronte ad eventuali guasti.
+## Cos'è un gateway
+- Cos'è un bridge/gateway: I gateway di rete sono progettati per tradurre il traffico tra protocolli diversi. Queste traduzioni consentono di collegare tra loro le reti che utilizzano protocolli o formati di dati diversi, con il gateway di rete che esegue la traduzione in linea. I Gateway Matter sono chiamati "border router", o "outer di confine/frontiera".
+## Cos'è Zigbee
+- Cos'è Zigbee: in concreto, si tratta di un protocollo radio aperto, standard, tale da consentire le trasmissioni dati tra un elemento centrale (un collettore, diciamo) e uno o più componenti domotici (attuatori, dispositivi, sensori ecc.) presenti nel proprio ambiente. Si differenzia dal Wi-Fi (che, concettualmente, ha un ruolo simile) nel fatto di esser concepito principalmente per uso domotico, facendo del basso consumo elettrico e della buona distanza coperta (fino a 100 metri in campo aperto) i punti di forza. La velocità di trasmissione invece è molto bassa
+## I prodotti Matter sono compatibili con Zigbee?
+- Matter può collegare altre tecnologie, come Zigbee, utilizzando i bridge domestici intelligenti per interagire con i dispositivi che utilizzano quegli altri protocolli. Dal punto di vista tecnico, Matter utilizza parte della stessa tecnologia sottostante a cui sarebbe familiare agli sviluppatori di Zigbee. I dispositivi basati su thread supportano la stessa tecnologia radio 802.15.4 di Zigbee. Matter e Zigbee sono protocolli diversi, offrendo ai produttori diverse opzioni adatte alle loro applicazioni. Ciò significa, tuttavia, che non esiste interoperabilità nativa tra Matter e Zigbee.
+- Un Matter bridge consente agli utenti di aggiungere i dispositivi ZigBee e Z-wave esistenti all'ecosistema Matter Fabric (Matter Fabric) e di collaborare con i nuovi dispositivi Matter. Come accennato in precedenza, al momento non è possibile connettere direttamente dispositivi non Matter a Matter. Ciò lascia il bridging come unica opzione praticabile per connettere ZigBee/Z-Wave a Matter.
