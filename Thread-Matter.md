@@ -18,3 +18,5 @@
 ## Cos'è Unify SDK
 - "Unify SDK" di Silicon Labs semplifica lo sviluppo dell'infrastruttura IoT, inclusi gateway, punti di accesso, hub, bridge e prodotti finali basati su processori applicativi. Ogni componente Unify SDK implementa un'interfaccia MQTT per il linguaggio unificato basato su Dotdot. È un'interfaccia modulare, estensibile, leggera e ben definita per l'integrazione del sistema. Unify SDK viene eseguito nativamente su Linux ma è progettato per la portabilità. L'applicazione bridge Unify-Matter, che fa parte di Unify SDK, si basa sul software Matter Bridge Application di CSA (Connectivity Standards Alliance). L'applicazione riceve i comandi ZCL sull'interfaccia del protocollo Matter, li traduce nel modello dati Unify Controller Language e li pubblica su un'interfaccia MQTT.
 ![immagine](https://github.com/scipioni/beesensor/assets/174588344/7a6b0d3d-b113-45f7-a836-5f98d8d76d34)
+
+(https://connectzbt1.home-assistant.io/about-multiprotocol/#from-skyconnect)
