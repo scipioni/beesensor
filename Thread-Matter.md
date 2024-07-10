@@ -34,3 +34,15 @@ Thread uses the same RF technology as Zigbee (IEEE 802.15.4) but provides IP con
 ## Home Assistant - OTBR communication
 - They communicate with each other using Thread protocol. OTBR acts as an intermediary between the thread network and the IP network.
 - Home Assistant communicates with OTBR using standard protocols, such as MQTT (Message Queuing Telemetry Transport) or CoAP (Constrained Application Protocol)
+
+```mermaid
+graph TB;
+A --> B
+```
+
+https://community.home-assistant.io/t/how-to-configure-preferred-thread-network/542274/18
+
+
+
+
+
