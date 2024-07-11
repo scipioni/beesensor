@@ -35,14 +35,22 @@ Thread uses the same RF technology as Zigbee (IEEE 802.15.4) but provides IP con
 - They communicate with each other using Thread protocol. OTBR acts as an intermediary between the thread network and the IP network.
 - Home Assistant communicates with OTBR using standard protocols, such as MQTT (Message Queuing Telemetry Transport) or CoAP (Constrained Application Protocol)
 
-```mermaid
-graph TB;
-A --> B
-```
-
 https://community.home-assistant.io/t/how-to-configure-preferred-thread-network/542274/18
 
+## Python Matter Server add-on (PMS)
+- For communicating with Matter devices, the Home Assistant integration runs its own “Matter controller” as add-on. This Matter Server add-on runs the controller software as a separate process and connects your Matter network (called Fabric in technical terms) and Home Assistant. The Home Assistant Matter integration connects to this server via a WebSocket connection.
 
+Add the Matter (BETA) integration.
+When prompted to Select the connection method:
+
+    If you run Home Assistant OS in a regular setup: select Submit.
+        This will install the official Matter server add-on.
+        Note that the official Matter server add-on is not supported on 32-bit platforms.
+    If you are already running the Matter server in another add-on, in or a custom container:
+        Deselect the checkbox, then select Submit.
+        In the next step, provide the URL to your Matter server.
+
+https://www.home-assistant.io/integrations/matter/
 
 
 
