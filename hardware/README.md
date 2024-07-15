@@ -31,3 +31,4 @@
 
 - [shop](https://www.amazon.it/Aqara-Finestre-Richiede-Automazione-SmartThings/dp/B0BTL8B72D/ref=asc_df_B0BTL8B72D/?tag=googshopit-21&linkCode=df0&hvadid=700827692395&hvpos=&hvnetw=g&hvrand=16292554846788683000&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9204045&hvtargid=pla-2189140959315&psc=1&mcid=1b8093c72aca34a29fe94f5012015b0b&gad_source=1)
 - [datasheet](https://cdn.aqara.com/cdn/website/mainland/static/docs/Door-and-Window-Sensor-P1_user-manual.pdf)
+- [datasheet 2](https://prd.aqara.cn/manual/?mid=manual.1055148099551940608)
