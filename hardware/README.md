@@ -32,3 +32,9 @@
 - [shop](https://www.amazon.it/Aqara-Finestre-Richiede-Automazione-SmartThings/dp/B0BTL8B72D/ref=asc_df_B0BTL8B72D/?tag=googshopit-21&linkCode=df0&hvadid=700827692395&hvpos=&hvnetw=g&hvrand=16292554846788683000&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9204045&hvtargid=pla-2189140959315&psc=1&mcid=1b8093c72aca34a29fe94f5012015b0b&gad_source=1)
 - [datasheet](https://cdn.aqara.com/cdn/website/mainland/static/docs/Door-and-Window-Sensor-P1_user-manual.pdf)
 - [datasheet 2](https://prd.aqara.cn/manual/?mid=manual.1055148099551940608)
+
+## ESP Thread Border Router
+
+- [shop](https://www.digikey.it/it/products/detail/espressif-systems/ESP%2520THREAD%2520BR-ZIGBEE%2520GW/21292142?utm_adgroup=&utm_source=google&utm_medium=cpc&utm_campaign=PMAX%20Shopping_Product_High%20Performers&utm_term=&productid=21292142&utm_content=&utm_id=go_cmp-20082952316_adg-_ad-__dev-c_ext-_prd-21292142_sig-EAIaIQobChMI68LZ0NmthwMVzpqDBx2J4wtoEAQYASABEgKP_fD_BwE&gad_source=1&gclid=EAIaIQobChMI68LZ0NmthwMVzpqDBx2J4wtoEAQYASABEgKP_fD_BwE)
+- [datasheet 1](https://dl.espressif.com/dl/schematics/esp_thread_br_zigbee_gw_schematiccs_v1.2.pdf)
+- [datasheet 2](https://dl.espressif.com/dl/schematics/esp_thread_br_zigbee_gw_sub_ethernet_schematiccs_v1.0.pdf)
