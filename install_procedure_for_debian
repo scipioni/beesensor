@@ -1,0 +1,48 @@
+
+https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-macos-setup.html#step-1-install-prerequisites
+
+
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+
+
+
+
+
+mkdir -p ~/esp
+cd ~/esp
+git clone --recursive https://github.com/espressif/esp-idf.git
+
+
+
+cd ~/esp/esp-idf
+./install.sh all
+
+git clone https://github.com/espressif/idf-extra-components.git
+
+
+
+install go task
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d
+
+
+
+
+open terminal on the project folder:
+cd /media/data/progetti/web_interface/zigbee2mqtt/beesensor/sensor3
+
+
+import the variables (to do every time you open a new terminal )
+. $HOME/esp/esp-idf/export.sh
+
+## Set target chip (only the first time)
+task target
+
+
+
+echo "SERIAL_PORT=/dev/ttyACM0"  > .env
+
+task flash
+
+
+. $HOME/esp/esp-idf/export.sh  && task monitor
+
